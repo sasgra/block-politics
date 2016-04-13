@@ -171,5 +171,4 @@ class Interface:
 
 if __name__ == "__main__":
     print "This module is only intended to be called from other scripts."
-    import sys
     sys.exit()
