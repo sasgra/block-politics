@@ -61,7 +61,7 @@ that something was a block line""",
     dates = {row[1]["punkt"]: row[1]["datum"] for row in data.iterrows()}
 
     blocks = Blocks()
-    output_data = {}
+    output_data = []
 
     for vote in votes.iterrows():
         vote_id = vote[0]
@@ -89,6 +89,15 @@ that something was a block line""",
         rel_party_votes = party_votes.relative()
         party_margin = rel_party_votes[party_alternative]
 
+        # If alternative i Aye/No, don't rale Refrain into account
+        # This elliminates some possible errors related to “kvittning”
+        if rest_block_votes.max_key() in ["Aye", "No"]:
+            total = rest_block_votes.Aye + rest_block_votes.No
+            block_margin = float(rest_block_votes[block_alternative]) / float(total)
+        if party_votes.max_key() in ["Aye", "No"]:
+            total = party_votes.Aye + party_votes.No
+            party_margin = float(party_votes[party_alternative]) / float(total)
+
         category = None
         if block_margin >= ui.args.threshold:
             # There was a clear block line
@@ -109,6 +118,10 @@ that something was a block line""",
             # There was no clear block line
             pass
 
+        output_data.append({'id': vote_id,
+                            'date': dates[vote_id],
+                            'category': category
+                            })
         print vote_id,
         print dates[vote_id],
         print category
