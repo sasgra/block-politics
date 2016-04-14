@@ -15,9 +15,14 @@ class Blocks(object):
     }
 
     def what_block(self, party):
-        return list(self.blocks)[
-            [party in self.blocks[b] for b in self.blocks].index(True)
-        ]
+        try:
+            block = list(self.blocks)[
+                [party in self.blocks[b] for b in self.blocks].index(True)
+            ]
+        except ValueError:
+            # Unknown party
+            block = None
+        return block
 
 
 class Votes(namedtuple('Votes', 'Aye No Refrain')):
