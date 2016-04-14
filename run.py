@@ -67,6 +67,8 @@ that something was a block line""",
     ui.info("Peparing data")
     votes = pandas.pivot_table(data, values=["rost"], index=["punkt"],
                                columns=["parti"], aggfunc=votes_from_rawdata)
+    num_votes = len(votes)
+    ui.info("Found %s unique main votes" % num_votes)
     # put dates in a smaller dict, for convinience
     dates = {row[1]["punkt"]: row[1]["datum"] for row in data.iterrows()}
 
@@ -77,9 +79,11 @@ that something was a block line""",
     # What block does the party we're analyzing belong to?
     block = blocks.what_block(ui.args.party)
 
+    i = 0
     for vote in votes.iterrows():
+        i += 1
         vote_id = vote[0]
-        ui.debug("Checking vote %s" % vote_id)
+        ui.debug("Checking vote %s/%s: %s" % (i, num_votes, vote_id))
 
         # Get sum of votes by block
         # and for out party
@@ -105,7 +109,7 @@ that something was a block line""",
         rel_party_votes = party_votes.relative()
         party_margin = rel_party_votes[party_alternative]
 
-        # If alternative i Aye/No, don't rale Refrain into account
+        # If alternative i Aye/No, don't take Refrain into account
         # This elliminates some possible errors related to “kvittning”
         if rest_block_votes.max_key() in ["Aye", "No"]:
             total = rest_block_votes.Aye + rest_block_votes.No
