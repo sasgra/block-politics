@@ -84,11 +84,12 @@ that something was a block line""",
         # Get sum of votes by block
         # and for out party
         block_votes = {b: Votes(0, 0, 0) for b in blocks.blocks}
-        party_votes = None
+        party_votes = Votes(0, 0, 0)
         for k, v in vote[1].iteritems():
             party = k[1]
             b = blocks.what_block(party)
-            block_votes[b] = block_votes[b].sum(v)
+            if b in block_votes.keys() and v is not None:
+                block_votes[b] = block_votes[b].sum(v)
             if party == ui.args.party:
                 party_votes = v
 
