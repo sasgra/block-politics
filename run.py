@@ -97,12 +97,12 @@ that something was a block line""",
             b = blocks.what_block(party)
             if b in block_votes.keys() and v is not None:
                 block_votes[b] = block_votes[b].sum(v)
-            if party == ui.args.party:
+            if party == ui.args.party and v is not None:
                 party_votes = v
 
         if party_votes is None:
-            ui.warning("Failed to fetch %s votes in vote %s" % (ui.args.party, vote_id))
-            continue
+            ui.error("Failed to fetch %s votes in vote %s" % (ui.args.party, vote_id))
+
         # How did the rest of our block vote (our block - our part)?
         rest_block_votes = block_votes[block].minus(party_votes)
         rel_rest_block_votes = rest_block_votes.relative()
