@@ -4,6 +4,7 @@
 
 from modules.interface import Interface
 from modules.parliament import Blocks, Votes, votes_from_rawdata
+from csvkit import DictWriter
 import pandas
 import requests
 
@@ -56,23 +57,29 @@ that something was a block line""",
                    commandline_args=cmd_args)
 
     ui.info("Loading votingdata")
-
     header_names = ["rm", "beteckning", "punkt", "votering_id", "namn",
                     "intressent_id", "parti", "valkrets", "rost",
                     "avser", "banknummer", "kon", "fodd", "datum"]
     data = pandas.read_csv(ui.args.csvfile, header=None, names=header_names)
     # Take only "sakfrågan" in account
     data = data[data.avser == "sakfrågan"]
+
+    ui.info("Peparing data")
     votes = pandas.pivot_table(data, values=["rost"], index=["punkt"],
                                columns=["parti"], aggfunc=votes_from_rawdata)
     # put dates in a smaller dict, for convinience
     dates = {row[1]["punkt"]: row[1]["datum"] for row in data.iterrows()}
 
-    blocks = Blocks()
+    ui.info("Analyzing data")
     output_data = []
+    blocks = Blocks()
+
+    # What block does the party we're analyzing belong to?
+    block = blocks.what_block(ui.args.party)
 
     for vote in votes.iterrows():
         vote_id = vote[0]
+        ui.debug("Checking vote %s" % vote_id)
 
         # Get sum of votes by block
         # and for out party
@@ -84,9 +91,6 @@ that something was a block line""",
             block_votes[b] = block_votes[b].sum(v)
             if party == ui.args.party:
                 party_votes = v
-
-        # What block does the party we're analyzing belong to?
-        block = blocks.what_block(ui.args.party)
 
         # How did the rest of our block vote (our block - our part)?
         rest_block_votes = block_votes[block].minus(party_votes)
@@ -126,6 +130,7 @@ that something was a block line""",
             # There was no clear block line
             pass
 
+        ui.info("Fetching remote data for %s" % vote_id)
         voting_url = "http://data.riksdagen.se/votering/%s/json" % vote_id
         r = requests.get(voting_url)
         if r.status_code == 200:
@@ -135,6 +140,10 @@ that something was a block line""",
                 title += u" – "
                 title += res["votering"]["dokument"]["subtitel"]
             doc = res["votering"]["dokument"]["dokument_url_html"]
+        else:
+            ui.warning("Failed fetching %s" % voting_url)
+            title = None
+            doc = None
 
         output_data.append({'id': vote_id,
                             'date': dates[vote_id],
@@ -145,15 +154,15 @@ that something was a block line""",
                             'document': doc
                             })
 
-    if "outputfile" in ui.args:
-        import csvkit
+        if ui.args.outputfile is None:
+            print ",".join(output_data.values())
+
+    if ui.args.outputfile is not None:
         with open(ui.args.outputfile, 'wb') as file_:
-            writer = csvkit.DictWriter(file_, fieldnames=['id', 'date', 'month', 'category', 'url', 'title', 'document'])
+            writer = DictWriter(file_, fieldnames=['id', 'date', 'month', 'category', 'url', 'title', 'document'])
             writer.writeheader()
             for row in output_data:
                     writer.writerow(row)
-    else:
-        print output_data
 
 if __name__ == '__main__':
     main()
