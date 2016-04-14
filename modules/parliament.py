@@ -9,7 +9,7 @@ class Blocks(object):
     """Contains parliament coalition data
     """
     blocks = {
-        "alliansen": ["C", "FP", "M", "KD"],
+        "alliansen": ["C", "FP", "L", "M", "KD"],
         "rodgrona": ["V", "S", "MP"],
         "sd": ["SD"]
     }
