@@ -87,6 +87,9 @@ that something was a block line""",
         party_votes = Votes(0, 0, 0)
         for k, v in vote[1].iteritems():
             party = k[1]
+            # Ugly hardcoded fix for now
+            if party == "L":
+                party = "FP"
             b = blocks.what_block(party)
             if b in block_votes.keys() and v is not None:
                 block_votes[b] = block_votes[b].sum(v)
