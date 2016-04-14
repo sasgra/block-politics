@@ -5,6 +5,7 @@
 from modules.interface import Interface
 from modules.parliament import Blocks, Votes, votes_from_rawdata
 import pandas
+import requests
 
 # Constants
 REBEL = 3
@@ -25,6 +26,13 @@ def main():
             'help': """CSV file from
 http://data.riksdagen.se/Data/Voteringar/""",
             'required': True
+        },
+        {
+            'short': "-o", "long": "--outputfile",
+            'dest': "outputfile",
+            'type': str,
+            'help': """File to write results to.
+Leave empty to print to stdout.""",
         },
         {
             'short': "-p", "long": "--party",
@@ -118,13 +126,34 @@ that something was a block line""",
             # There was no clear block line
             pass
 
+        voting_url = "http://data.riksdagen.se/votering/%s/json" % vote_id
+        r = requests.get(voting_url)
+        if r.status_code == 200:
+            res = r.json()
+            title = res["votering"]["dokument"]["titel"]
+            if res["votering"]["dokument"]["subtitel"]:
+                title += u" – "
+                title += res["votering"]["dokument"]["subtitel"]
+            doc = res["votering"]["dokument"]["dokument_url_html"]
+
         output_data.append({'id': vote_id,
                             'date': dates[vote_id],
-                            'category': category
+                            'month': dates[vote_id][:7],
+                            'category': category,
+                            'url': voting_url,
+                            'title': title,
+                            'document': doc
                             })
-        print vote_id,
-        print dates[vote_id],
-        print category
+
+    if "outputfile" in ui.args:
+        import csvkit
+        with open(ui.args.outputfile, 'wb') as file_:
+            writer = csvkit.DictWriter(file_, fieldnames=['id', 'date', 'month', 'category', 'url', 'title', 'document'])
+            writer.writeheader()
+            for row in output_data:
+                    writer.writerow(row)
+    else:
+        print output_data
 
 if __name__ == '__main__':
     main()
