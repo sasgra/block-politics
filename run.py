@@ -68,9 +68,9 @@ that something was a block line""",
     votes = pandas.pivot_table(data, values=["rost"], index=["punkt"],
                                columns=["parti"], aggfunc=votes_from_rawdata)
     num_votes = len(votes)
-    ui.info("Found %s unique main votes" % num_votes)
     # put dates in a smaller dict, for convinience
     dates = {row[1]["punkt"]: row[1]["datum"] for row in data.iterrows()}
+    ui.info("Found %s unique main votes" % num_votes)
 
     ui.info("Analyzing data")
     output_data = []
@@ -100,6 +100,9 @@ that something was a block line""",
             if party == ui.args.party:
                 party_votes = v
 
+        if party_votes is None:
+            ui.warning("Failed to fetch %s votes in vote %s" % (ui.args.party, vote_id))
+            continue
         # How did the rest of our block vote (our block - our part)?
         rest_block_votes = block_votes[block].minus(party_votes)
         rel_rest_block_votes = rest_block_votes.relative()
@@ -166,6 +169,7 @@ that something was a block line""",
             print ",".join(output_data.values())
 
     if ui.args.outputfile is not None:
+        ui.info("Writing results to %s" % ui.args.outputfile)
         with open(ui.args.outputfile, 'wb') as file_:
             writer = DictWriter(file_, fieldnames=['id', 'date', 'month', 'category', 'url', 'title', 'document'])
             writer.writeheader()
