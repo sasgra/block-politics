@@ -5,6 +5,28 @@
 from collections import namedtuple, defaultdict
 
 
+utskott = {
+    "AU": "Arbetsmarknadsutskottet",
+    "CU": "Civilutskottet",
+    "FiU": "Finansutskottet",
+    "FöU": "Försvarsutskottet",
+    "JuU": "Justitieutskottet",
+    "KU": "Konstitutionsutskottet",
+    "KrU": "Kulturutskottet",
+    "MjU": "Miljö- och jordbruksutskottet",
+    "NU": "Näringsutskottet",
+    "SkU": "Skatteutskottet",
+    "SfU": "Socialförsäkringsutskottet",
+    "SoU": "Socialutskottet",
+    "TU": "Trafikutskottet",
+    "UbU": "Utbildningsutskottet",
+    "UU": "Utrikesutskottet",
+    "UFöU": "Sammansatta utrikes- och försvarsutskottet",
+    "BoU": "Bostadsutskottet",  # Former
+    "LU": "Lagutskottet",  # Former
+}
+
+
 class Blocks(object):
     """Contains parliament coalition data
     """
@@ -13,6 +35,18 @@ class Blocks(object):
         "rodgrona": ["V", "S", "MP"],
         "sd": ["SD"]
     }
+    gov = [{
+        "name": "Löfven",
+        "start": "2014-10-03",
+        "end": None,
+        "parties": ["S", "MP"]
+        },
+        {
+        "name": "Reinfeldt",
+        "start": "2006-10-06",
+        "end": "2014-10-03",
+        "parties": ["S", "MP"]
+        }]
 
     def what_block(self, party):
         try:
