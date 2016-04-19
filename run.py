@@ -3,15 +3,11 @@
 """
 
 from modules.interface import Interface
-from modules.parliament import Blocks, Votes, votes_from_rawdata
+from modules.parliament import votes_from_rawdata
 from csvkit import DictWriter
 import pandas
 import requests
-
-# Constants
-REBEL = 3
-DIVERGING = 2
-LOYAL = 1
+import analyzers
 
 
 def main():
@@ -26,6 +22,14 @@ def main():
             'type': str,
             'help': """CSV file from
 http://data.riksdagen.se/Data/Voteringar/""",
+            'required': True
+        },
+        {
+            'short': "-q", "long": "--query",
+            'dest': "query",
+            'type': str,
+            'choices': ['loyalty'],
+            'help': "What should we check for?",
             'required': True
         },
         {
@@ -74,10 +78,11 @@ that something was a block line""",
 
     ui.info("Analyzing data")
     output_data = []
-    blocks = Blocks()
 
-    # What block does the party we're analyzing belong to?
-    block = blocks.what_block(ui.args.party)
+    if ui.args.query == "loyalty":
+        analyzer = analyzers.Loyalty(ui.args.party, ui.args.threshold)
+    else:
+        raise NotImplementedError("No analyzer for this query")
 
     i = 0
     for vote in votes.iterrows():
@@ -85,61 +90,7 @@ that something was a block line""",
         vote_id = vote[0]
         ui.debug("Checking vote %s/%s: %s" % (i, num_votes, vote_id))
 
-        # Get sum of votes by block
-        # and for out party
-        block_votes = {b: Votes(0, 0, 0) for b in blocks.blocks}
-        party_votes = Votes(0, 0, 0)
-        for k, v in vote[1].iteritems():
-            party = k[1]
-            # Ugly hardcoded fix for now
-            if party == "L":
-                party = "FP"
-            b = blocks.what_block(party)
-            if b in block_votes.keys() and v is not None:
-                block_votes[b] = block_votes[b].sum(v)
-            if party == ui.args.party and v is not None:
-                party_votes = v
-
-        if party_votes is None:
-            ui.error("Failed to fetch %s votes in vote %s" % (ui.args.party, vote_id))
-
-        # How did the rest of our block vote (our block - our part)?
-        rest_block_votes = block_votes[block].minus(party_votes)
-        rel_rest_block_votes = rest_block_votes.relative()
-        block_alternative = rest_block_votes.max_index()  # Aye/No/Refrain
-        block_margin = rel_rest_block_votes[block_alternative]  # 0-1
-        party_alternative = party_votes.max_index()
-        rel_party_votes = party_votes.relative()
-        party_margin = rel_party_votes[party_alternative]
-
-        # If alternative i Aye/No, don't take Refrain into account
-        # This elliminates some possible errors related to “kvittning”
-        if rest_block_votes.max_key() in ["Aye", "No"]:
-            total = rest_block_votes.Aye + rest_block_votes.No
-            block_margin = float(rest_block_votes[block_alternative]) / float(total)
-        if party_votes.max_key() in ["Aye", "No"]:
-            total = party_votes.Aye + party_votes.No
-            party_margin = float(party_votes[party_alternative]) / float(total)
-
-        category = None
-        if block_margin >= ui.args.threshold:
-            # There was a clear block line
-
-            if party_alternative != block_alternative:
-                # ... but our party didn't follow
-                category = REBEL
-            elif party_margin < 1:
-                # followed, but not entirely
-                category = DIVERGING
-            elif party_margin == 1:
-                # ... and our party followed
-                category = LOYAL
-            else:
-                ui.error("This should never happen!")
-
-        else:
-            # There was no clear block line
-            pass
+        category = analyzer.run(vote)
 
         ui.info("Fetching remote data for %s" % vote_id)
         voting_url = "http://data.riksdagen.se/votering/%s/json" % vote_id
@@ -156,9 +107,11 @@ that something was a block line""",
             title = None
             doc = None
 
+        date = dates[vote_id]
         output_data.append({'id': vote_id,
-                            'date': dates[vote_id],
-                            'month': dates[vote_id][:7],
+                            'date': date,
+                            'month': date[:7],
+                            'halfyear': (int(date[5:7]) > 6) + 1,
                             'category': category,
                             'url': voting_url,
                             'title': title,
@@ -166,12 +119,17 @@ that something was a block line""",
                             })
 
         if ui.args.outputfile is None:
-            print ",".join(output_data.values())
+            import sys
+            if category:
+                sys.stdout.write(["░", "▒", "▓", "█"][category])  # █
+            else:
+                sys.stdout.write(" ")
+            sys.stdout.flush()
 
     if ui.args.outputfile is not None:
         ui.info("Writing results to %s" % ui.args.outputfile)
         with open(ui.args.outputfile, 'wb') as file_:
-            writer = DictWriter(file_, fieldnames=['id', 'date', 'month', 'category', 'url', 'title', 'document'])
+            writer = DictWriter(file_, fieldnames=['id', 'date', 'month', 'halfyear', 'category', 'url', 'title', 'document'])
             writer.writeheader()
             for row in output_data:
                     writer.writerow(row)
