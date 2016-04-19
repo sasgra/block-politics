@@ -30,6 +30,9 @@ utskott = {
 class Blocks(object):
     """Contains parliament coalition data
     """
+    FIRST = "0"  # Has no predecessor
+    LAST = "9"  # Has no successor
+
     blocks = {
         "alliansen": ["C", "FP", "L", "M", "KD"],
         "rodgrona": ["V", "S", "MP"],
@@ -38,7 +41,7 @@ class Blocks(object):
     gov = [{
         "name": "Löfven",
         "start": "2014-10-03",
-        "end": None,
+        "end": LAST,
         "parties": ["S", "MP"]
         },
         {
@@ -57,6 +60,15 @@ class Blocks(object):
             # Unknown party
             block = None
         return block
+
+    def what_gov(self, date):
+        """What government was in power at a certain date?
+           Use an ISO date, e.g. 2012-06-13.
+        """
+        for gov in self.gov:
+            if gov["start"] <= date < gov["end"]:
+                return gov
+        raise ValueError("No government found for this date: %s" % date)
 
 
 class Votes(namedtuple('Votes', 'Aye No Refrain')):

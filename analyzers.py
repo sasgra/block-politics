@@ -27,6 +27,63 @@ class Analyzer(object):
         return str(code)
 
 
+class Kingmaking(Analyzer):
+    """Find out if a party supported the government
+    """
+
+    OPPOSE = False
+    SUPPORT = True
+
+    def __init__(self, party, threshold):
+        Analyzer.__init__(self, party)
+        self.threshold = threshold
+
+    def short_repr(self, category):
+        if category is not None:
+            stdout.write(["░", "█"][category])
+        else:
+            stdout.write(" ")
+        stdout.flush()
+
+    def run(self, vote, date):
+        # Find out what government is in charge
+        self.gov = self.blocks.what_gov(date)["parties"]
+
+        # Get sum of votes for government
+        # and for out party
+        gov_votes = Votes(0, 0, 0)
+        party_votes = Votes(0, 0, 0)
+        for k, v in vote[1].iteritems():
+            party = k[1]
+            # Ugly hardcoded fix for now
+            if party == "L":
+                party = "FP"
+            if party in self.gov and v is not None:
+                gov_votes = gov_votes.sum(v)
+            if party == self.party and v is not None:
+                party_votes = v
+
+        gov_line = gov_votes.max_index()
+        party_line = party_votes.max_index()
+
+        if gov_votes.max_key() in ["Aye", "No"]:
+            total = gov_votes.Aye + gov_votes.No
+            gov_margin = float(gov_votes[gov_line]) / float(total)
+        else:
+            total = gov_votes.Aye + gov_votes.No + gov_votes.Refrain
+            gov_margin = float(gov_votes.Refrain) / float(total)
+
+        if gov_margin > self.threshold:
+            if party_line == gov_line:
+                category = self.SUPPORT
+            else:
+                category = self.OPPOSE
+        else:
+            category = None
+
+        return category
+
+
 class Loyalty(Analyzer):
     """Find out if a party followed their block line or not.
     """
@@ -64,21 +121,23 @@ class Loyalty(Analyzer):
 
         # How did the rest of our block vote (our block - our part)?
         rest_block_votes = block_votes[self.block].minus(party_votes)
-        rel_rest_block_votes = rest_block_votes.relative()
         block_alternative = rest_block_votes.max_index()  # Aye/No/Refrain
-        block_margin = rel_rest_block_votes[block_alternative]  # 0-1
         party_alternative = party_votes.max_index()
-        rel_party_votes = party_votes.relative()
-        party_margin = rel_party_votes[party_alternative]
 
         # If alternative i Aye/No, don't take Refrain into account
         # This elliminates some possible errors related to “kvittning”
         if rest_block_votes.max_key() in ["Aye", "No"]:
             total = rest_block_votes.Aye + rest_block_votes.No
             block_margin = float(rest_block_votes[block_alternative]) / float(total)
+        else:
+            total = rest_block_votes.Aye + rest_block_votes.No + rest_block_votes.Refrain
+            block_margin = float(rest_block_votes.Refrain) / float(total)
         if party_votes.max_key() in ["Aye", "No"]:
             total = party_votes.Aye + party_votes.No
             party_margin = float(party_votes[party_alternative]) / float(total)
+        else:
+            total = party_votes.Aye + party_votes.No + party_votes.Refrain
+            party_margin = float(party_votes.Refrain) / float(total)
 
         category = None
         if block_margin >= self.threshold:

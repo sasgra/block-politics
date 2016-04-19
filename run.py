@@ -29,7 +29,7 @@ http://data.riksdagen.se/Data/Voteringar/""",
             'short': "-q", "long": "--query",
             'dest': "query",
             'type': str,
-            'choices': ['loyalty'],
+            'choices': ["loyalty", "kingmaking"],
             'help': "What should we check for?",
             'required': True
         },
@@ -84,6 +84,8 @@ that something was a block line""",
 
     if ui.args.query == "loyalty":
         analyzer = analyzers.Loyalty(ui.args.party, ui.args.threshold)
+    elif ui.args.query == "kingmaking":
+        analyzer = analyzers.Kingmaking(ui.args.party, ui.args.threshold)
     else:
         raise NotImplementedError("No analyzer for this query")
 
@@ -93,7 +95,11 @@ that something was a block line""",
         vote_id = vote[0]
         ui.info("Checking vote %s/%s: %s" % (i, num_votes, vote_id))
 
-        category = analyzer.run(vote)
+        date = metadict[vote_id][0]
+        if ui.args.query == "kingmaking":
+            category = analyzer.run(vote, date)
+        elif ui.args.query == "loyalty":
+            category = analyzer.run(vote)
 
         ui.debug("Fetching remote data for %s" % vote_id)
         voting_url = "http://data.riksdagen.se/votering/%s/json" % vote_id
@@ -110,7 +116,6 @@ that something was a block line""",
             title = None
             doc = None
 
-        date = metadict[vote_id][0]
         utskott = sub(r'[0-9]', "", metadict[vote_id][1]).decode('utf-8')
         output_data.append({'id': vote_id,
                             'date': date,
