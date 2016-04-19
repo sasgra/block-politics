@@ -4,6 +4,7 @@
 
 from modules.interface import Interface
 from modules.parliament import votes_from_rawdata
+from re import sub
 from csvkit import DictWriter
 import pandas
 import requests
@@ -72,8 +73,10 @@ that something was a block line""",
     votes = pandas.pivot_table(data, values=["rost"], index=["punkt"],
                                columns=["parti"], aggfunc=votes_from_rawdata)
     num_votes = len(votes)
-    # put dates in a smaller dict, for convinience
-    dates = {row[1]["punkt"]: row[1]["datum"] for row in data.iterrows()}
+    # put dates, and utskott in a smaller dict, for convinience
+    metadict = {row[1]["punkt"]: (row[1]["datum"],
+                                  row[1]["beteckning"])
+                for row in data.iterrows()}
     ui.info("Found %s unique main votes" % num_votes)
 
     ui.info("Analyzing data")
@@ -88,11 +91,11 @@ that something was a block line""",
     for vote in votes.iterrows():
         i += 1
         vote_id = vote[0]
-        ui.debug("Checking vote %s/%s: %s" % (i, num_votes, vote_id))
+        ui.info("Checking vote %s/%s: %s" % (i, num_votes, vote_id))
 
         category = analyzer.run(vote)
 
-        ui.info("Fetching remote data for %s" % vote_id)
+        ui.debug("Fetching remote data for %s" % vote_id)
         voting_url = "http://data.riksdagen.se/votering/%s/json" % vote_id
         r = requests.get(voting_url)
         if r.status_code == 200:
@@ -107,7 +110,8 @@ that something was a block line""",
             title = None
             doc = None
 
-        date = dates[vote_id]
+        date = metadict[vote_id][0]
+        utskott = sub(r'[0-9]', "", metadict[vote_id][1]).decode('utf-8')
         output_data.append({'id': vote_id,
                             'date': date,
                             'month': date[:7],
@@ -115,21 +119,17 @@ that something was a block line""",
                             'category': category,
                             'url': voting_url,
                             'title': title,
-                            'document': doc
+                            'document': doc,
+                            'utskott': utskott
                             })
 
         if ui.args.outputfile is None:
-            import sys
-            if category:
-                sys.stdout.write(["░", "▒", "▓", "█"][category])  # █
-            else:
-                sys.stdout.write(" ")
-            sys.stdout.flush()
+            analyzer.short_repr(category)
 
     if ui.args.outputfile is not None:
         ui.info("Writing results to %s" % ui.args.outputfile)
         with open(ui.args.outputfile, 'wb') as file_:
-            writer = DictWriter(file_, fieldnames=['id', 'date', 'month', 'halfyear', 'category', 'url', 'title', 'document'])
+            writer = DictWriter(file_, fieldnames=['id', 'date', 'month', 'halfyear', 'category', 'url', 'title', 'document', 'utskott'])
             writer.writeheader()
             for row in output_data:
                     writer.writerow(row)
