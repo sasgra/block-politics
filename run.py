@@ -30,7 +30,7 @@ http://data.riksdagen.se/Data/Voteringar/""",
             'short': "-q", "long": "--query",
             'dest': "query",
             'type': str,
-            'choices': ["loyalty", "kingmaking", "supporters"],
+            'choices': ["loyalty", "kingmaking", "supporters", "friends"],
             'help': "What should we check for?",
             'required': True
         },
@@ -99,6 +99,8 @@ that something was a block line""",
         analyzer = analyzers.Kingmaking(ui.args.party, ui.args.threshold)
     elif ui.args.query == "supporters":
         analyzer = analyzers.Supporters(None, ui.args.threshold)
+    elif ui.args.query == "friends":
+        analyzer = analyzers.Friends()
     else:
         raise NotImplementedError("No analyzer for this query")
 
@@ -115,6 +117,8 @@ that something was a block line""",
             analysis = analyzer.run(vote)
         elif ui.args.query == "supporters":
             analysis = analyzer.run(vote, date)
+        elif ui.args.query == "friends":
+            analysis = analyzer.run(vote)
 
         voting_url = "http://data.riksdagen.se/votering/%s/json" % vote_id
         if ui.args.offline:

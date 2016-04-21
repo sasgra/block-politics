@@ -28,6 +28,40 @@ class Analyzer(object):
         return code
 
 
+class Friends(Analyzer):
+    """Find out who voted with whom
+    """
+
+    fields = None  # Populate on init
+
+    def __init__(self):
+        Analyzer.__init__(self, None)
+        parties = self.blocks.parties
+        self.fields = ["%s_%s" % (a, b) for a in parties for b in parties if a != b]
+
+    def run(self, vote):
+        party_votes = {}
+        for k, v in vote[1].iteritems():
+            party = k[1]
+            # Ignore MPs with no party affiliation
+            if party == '-':
+                continue
+            # Ugly hardcoded fix for now
+            if party == "L":
+                party = "FP"
+            if v is not None:
+                party_votes[party] = v
+        output_dict = {a: None for a in self.fields}
+        for party_a, party_vote_a in party_votes.iteritems():
+            for party_b, party_vote_b in party_votes.iteritems():
+                if party_a == party_b:
+                    continue
+                if party_vote_a.max_index() == party_vote_b.max_index():
+                    key = "%s_%s" % (party_a, party_b)
+                    output_dict[key] = 1
+        return output_dict
+
+
 class Supporters(Analyzer):
     """Find out who supported the government
     """
