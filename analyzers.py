@@ -10,13 +10,14 @@ class Analyzer(object):
     party = None
     block = None
     blocks = Blocks()
+    fields = None  # What fields the analysis dictionary will contains
 
     def __init__(self, party):
         self.party = party
         self.block = self.blocks.what_block(party)
 
     def run(self, vote):
-        """Categorize of this vote."""
+        """Analyse of this vote. Return a dictionary."""
         raise NotImplementedError("This class must be overridden")
 
     def short_repr(self, code):
@@ -24,23 +25,71 @@ class Analyzer(object):
            for visualizing the voting pattern.
            Normally one character.
         """
-        return str(code)
+        return code
+
+
+class Supporters(Analyzer):
+    """Find out who supported the government
+    """
+
+    fields = ["category", "party"]
+
+    def __init__(self, party, threshold):
+        Analyzer.__init__(self, party)
+        self.threshold = threshold
+
+    def run(self, vote, date):
+        self.gov = self.blocks.what_gov(date)
+        gov_votes = Votes(0, 0, 0)
+        party_votes = {}
+        for k, v in vote[1].iteritems():
+            party = k[1]
+            # Ignore MPs with no party affiliation
+            if party == '-':
+                continue
+            # Ugly hardcoded fix for now
+            if party == "L":
+                party = "FP"
+            if v is not None:
+                party_votes[party] = v
+                if party in self.gov["parties"]:
+                    gov_votes = gov_votes.sum(v)
+        gov_line = gov_votes.max_key()
+        output_dict = {}
+        if gov_votes.margin() > self.threshold:
+            """There was a governement line (anything else
+               would be extremely remarkable)
+            """
+            for party in self.blocks.parties:
+                if party in self.gov["parties"]:
+                    # Ignore govt members
+                    pass
+                elif party_votes[party].max_key() == gov_line:
+                    output_dict[party] = 1
+                else:
+                    output_dict[party] = 0
+        else:
+            pass
+
+        return output_dict
 
 
 class Kingmaking(Analyzer):
     """Find out if a party supported the government
     """
 
-    OPPOSE = False
-    SUPPORT = True
+    SUPPORT = 1
+    OPPOSE = 0
+
+    fields = ["category"]
 
     def __init__(self, party, threshold):
         Analyzer.__init__(self, party)
         self.threshold = threshold
 
-    def short_repr(self, category):
-        if category is not None:
-            stdout.write(["░", "█"][category])
+    def short_repr(self, analysis):
+        if analysis["category"] is not None:
+            stdout.write(["░", "█"][analysis["category"]])
         else:
             stdout.write(" ")
         stdout.flush()
@@ -66,14 +115,7 @@ class Kingmaking(Analyzer):
         gov_line = gov_votes.max_index()
         party_line = party_votes.max_index()
 
-        if gov_votes.max_key() in ["Aye", "No"]:
-            total = gov_votes.Aye + gov_votes.No
-            gov_margin = float(gov_votes[gov_line]) / float(total)
-        else:
-            total = gov_votes.Aye + gov_votes.No + gov_votes.Refrain
-            gov_margin = float(gov_votes.Refrain) / float(total)
-
-        if gov_margin > self.threshold:
+        if gov_votes.margin() > self.threshold:
             if party_line == gov_line:
                 category = self.SUPPORT
             else:
@@ -81,7 +123,7 @@ class Kingmaking(Analyzer):
         else:
             category = None
 
-        return category
+        return {"category": category}
 
 
 class Loyalty(Analyzer):
@@ -92,13 +134,19 @@ class Loyalty(Analyzer):
     DIVERGING = 2
     LOYAL = 1
 
+    fields = ["category"]
+
     def __init__(self, party, threshold):
         Analyzer.__init__(self, party)
         self.threshold = threshold
 
-    def short_repr(self, category):
-        if category:
-            stdout.write(["░", "\033[92m▒\033[0m", "\033[93m▓\033[0m", "\033[91m█\033[0m"][category])
+    def short_repr(self, analysis):
+        if analysis["category"] is not None:
+            stdout.write(["░",
+                          "\033[92m▒\033[0m",
+                          "\033[93m▓\033[0m",
+                          "\033[91m█\033[0m"
+                          ][analysis["category"]])
         else:
             stdout.write(" ")
         stdout.flush()
@@ -126,18 +174,8 @@ class Loyalty(Analyzer):
 
         # If alternative i Aye/No, don't take Refrain into account
         # This elliminates some possible errors related to “kvittning”
-        if rest_block_votes.max_key() in ["Aye", "No"]:
-            total = rest_block_votes.Aye + rest_block_votes.No
-            block_margin = float(rest_block_votes[block_alternative]) / float(total)
-        else:
-            total = rest_block_votes.Aye + rest_block_votes.No + rest_block_votes.Refrain
-            block_margin = float(rest_block_votes.Refrain) / float(total)
-        if party_votes.max_key() in ["Aye", "No"]:
-            total = party_votes.Aye + party_votes.No
-            party_margin = float(party_votes[party_alternative]) / float(total)
-        else:
-            total = party_votes.Aye + party_votes.No + party_votes.Refrain
-            party_margin = float(party_votes.Refrain) / float(total)
+        block_margin = rest_block_votes.margin()
+        party_margin = party_votes.margin()
 
         category = None
         if block_margin >= self.threshold:
@@ -157,4 +195,4 @@ class Loyalty(Analyzer):
         else:
             # There was no clear block line
             pass
-        return category
+        return {"category": category}

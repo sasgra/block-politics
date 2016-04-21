@@ -33,6 +33,7 @@ class Blocks(object):
     FIRST = "0"  # Has no predecessor
     LAST = "9"  # Has no successor
 
+    parties = ["V", "S", "MP", "C", "FP", "M", "KD", "SD"]
     blocks = {
         "alliansen": ["C", "FP", "L", "M", "KD"],
         "rodgrona": ["V", "S", "MP"],
@@ -42,14 +43,13 @@ class Blocks(object):
         "name": "Löfven",
         "start": "2014-10-03",
         "end": LAST,
-        "parties": ["S", "MP"]
-        },
-        {
+        "parties": ["S", "MP"],
+    }, {
         "name": "Reinfeldt",
         "start": "2006-10-06",
         "end": "2014-10-03",
         "parties": ["S", "MP"]
-        }]
+    }]
 
     def what_block(self, party):
         try:
@@ -80,9 +80,9 @@ class Votes(namedtuple('Votes', 'Aye No Refrain')):
             raise TypeError("Vote count is already a float.")
         total = float(self.Aye + self.No + self.Refrain)
 #        return Votes((float(v)/total for v in self))
-        return Votes(float(self.Aye)/total,
-                     float(self.No)/total,
-                     float(self.Refrain)/total)
+        return Votes(float(self.Aye) / total,
+                     float(self.No) / total,
+                     float(self.Refrain) / total)
 
     def sum(self, a):
         """Adds two Votes together"""
@@ -107,6 +107,19 @@ class Votes(namedtuple('Votes', 'Aye No Refrain')):
            On draw, return the first alternative.
         """
         return self._fields[self.index(max(self))]
+
+    def margin(self):
+        """By what margin did the biggest line win.
+           If Aye/No Refrains will be ignored.
+        """
+
+        if self.max_key() in ["Aye", "No"]:
+            total = self.Aye + self.No
+            margin = float(self[self.max_index()]) / float(total)
+        else:
+            total = self.Aye + self.No + self.Refrain
+            margin = float(self.Refrain) / float(total)
+        return margin
 
 
 def votes_from_rawdata(votes):
