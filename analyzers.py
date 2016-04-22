@@ -121,6 +121,18 @@ class Friends(Analyzer):
         self.party_pairs = list(set([frozenset([a, b])
                                 for a in parties for b in parties if a != b]))
 
+    def run(self, screen_dump=False):
+        """Do some postprocessing"""
+        i = 0
+        output_data = []
+        for vote in self.votes.iterrows():
+            i += 1
+            vote_id = vote[0]
+            analysis = self.analyze_vote(vote)
+            print analysis
+
+
+
     def analyze_vote(self, vote):
         party_votes = {}
         for k, v in vote[1].iteritems():
