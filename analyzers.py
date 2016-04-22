@@ -123,15 +123,15 @@ class Friends(Analyzer):
 
     def run(self, screen_dump=False):
         """Do some postprocessing"""
-        i = 0
-        output_data = []
+        party_pairs = {("%s_%s" % (list(pair)[0], list(pair)[1])): 0
+                       for pair in self.party_pairs}
+
         for vote in self.votes.iterrows():
-            i += 1
-            vote_id = vote[0]
             analysis = self.analyze_vote(vote)
-            print analysis
+            for party_pair, v in analysis.iteritems():
+                party_pairs[party_pair] += v
 
-
+        return [party_pairs]
 
     def analyze_vote(self, vote):
         party_votes = {}
