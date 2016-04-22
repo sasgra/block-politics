@@ -3,12 +3,9 @@
 """
 
 from modules.interface import Interface
-from modules.parliament import votes_from_rawdata
 from argparse import ArgumentError
-from re import sub
 from csvkit import DictWriter
 import pandas
-import requests
 import analyzers
 
 
@@ -68,94 +65,37 @@ that something was a block line""",
                    "Analyze voting patterns",
                    commandline_args=cmd_args)
 
-    ui.info("Loading votingdata")
-    header_names = ["rm", "beteckning", "punkt", "votering_id", "namn",
-                    "intressent_id", "parti", "valkrets", "rost",
-                    "avser", "banknummer", "kon", "fodd", "datum"]
-    data = pandas.read_csv(ui.args.csvfile, header=None, names=header_names)
-    # Take only "sakfrågan" in account
-    data = data[data.avser == "sakfrågan"]
-
-    ui.info("Peparing data")
-    votes = pandas.pivot_table(data, values=["rost"], index=["punkt"],
-                               columns=["parti"], aggfunc=votes_from_rawdata)
-    num_votes = len(votes)
-    # put dates, and utskott in a smaller dict, for convinience
-    metadict = {row[1]["punkt"]: (row[1]["datum"],
-                                  row[1]["beteckning"])
-                for row in data.iterrows()}
-    ui.info("Found %s unique main votes" % num_votes)
-
-    ui.info("Analyzing data")
-    output_data = []
-
     if ui.args.query == "loyalty":
+        analyzerClass = analyzers.Loyalty
         if ui.args.party is None:
             raise ArgumentError("Party is required for this query")
-        analyzer = analyzers.Loyalty(ui.args.party, ui.args.threshold)
     elif ui.args.query == "kingmaking":
+        analyzerClass = analyzers.Kingmaking
         if ui.args.party is None:
             raise ArgumentError("Party is required for this query")
-        analyzer = analyzers.Kingmaking(ui.args.party, ui.args.threshold)
     elif ui.args.query == "supporters":
-        analyzer = analyzers.Supporters(None, ui.args.threshold)
+        analyzerClass = analyzers.Supporters
     elif ui.args.query == "friends":
-        analyzer = analyzers.Friends()
+        analyzerClass = analyzers.Friends
     else:
         raise NotImplementedError("No analyzer for this query")
 
-    i = 0
-    for vote in votes.iterrows():
-        i += 1
-        vote_id = vote[0]
-        ui.info("Checking vote %s/%s: %s" % (i, num_votes, vote_id))
+    analyzer = analyzerClass(ui.args.party,
+                             ui.args.threshold,
+                             ui.args.offline)
 
-        date = metadict[vote_id][0]
-        if ui.args.query == "kingmaking":
-            analysis = analyzer.run(vote, date)
-        elif ui.args.query == "loyalty":
-            analysis = analyzer.run(vote)
-        elif ui.args.query == "supporters":
-            analysis = analyzer.run(vote, date)
-        elif ui.args.query == "friends":
-            analysis = analyzer.run(vote)
+    ui.info("Loading votingdata")
+    data = pandas.read_csv(ui.args.csvfile,
+                           header=None,
+                           names=analyzers.Analyzer.header_names)
+    ui.info("Preparing votingdata")
+    analyzer.load(data)
+    ui.info("Found %s unique main votes" % analyzer.num_votes)
 
-        voting_url = "http://data.riksdagen.se/votering/%s/json" % vote_id
-        if ui.args.offline:
-            title = None
-            doc = None
-        else:
-            ui.debug("Fetching remote data for %s" % vote_id)
-            r = requests.get(voting_url)
-            if r.status_code == 200:
-                res = r.json()
-                title = res["votering"]["dokument"]["titel"]
-                if res["votering"]["dokument"]["subtitel"]:
-                    title += u" – "
-                    title += res["votering"]["dokument"]["subtitel"]
-                doc = res["votering"]["dokument"]["dokument_url_html"]
-            else:
-                ui.warning("Failed fetching %s" % voting_url)
-                title = None
-                doc = None
+    ui.info("Analyzing data")
 
-        utskott = sub(r'[0-9]', "", metadict[vote_id][1]).decode('utf-8')
-        row_data = {'id': vote_id,
-                    'date': date,
-                    'month': date[:7],
-                    'halfyear': (int(date[5:7]) > 6) + 1,
-                    'url': voting_url,
-                    'title': title,
-                    'document': doc,
-                    'utskott': utskott
-                    }
-        for k, v in analysis.iteritems():
-            row_data[k] = v
-
-        output_data.append(row_data)
-
-        if ui.args.outputfile is None:
-            analyzer.short_repr(analysis)
+    output_data = analyzer.run(screen_dump=(ui.args.outputfile is None))
+    print output_data
 
     if ui.args.outputfile is not None:
         ui.info("Writing results to %s" % ui.args.outputfile)

@@ -1,23 +1,38 @@
 # coding: utf-8
 """ A collection of analyzer classes for votes
 """
-from modules.parliament import Blocks, Votes
+from modules.parliament import Blocks, Votes, votes_from_rawdata
 from sys import stdout
+from re import sub
+import pandas
+import requests
 
 
 class Analyzer(object):
 
     party = None
     block = None
-    blocks = Blocks()
-    fields = None  # What fields the analysis dictionary will contains
+    threshold = None
+    offline = None
 
-    def __init__(self, party):
+    blocks = Blocks()
+    votes = None
+    num_votes = None
+    metadict = None
+    """Headers in voting data from the API"""
+    header_names = ["rm", "beteckning", "punkt", "votering_id", "namn",
+                    "intressent_id", "parti", "valkrets", "rost",
+                    "avser", "banknummer", "kon", "fodd", "datum"]
+
+    def __init__(self, party=None, threshold=None, offline=False):
         self.party = party
         self.block = self.blocks.what_block(party)
+        self.threshold = threshold
+        self.offline = offline
 
-    def run(self, vote):
-        """Analyse of this vote. Return a dictionary."""
+    def analyze_vote(self, vote):
+        """Analyse of this vote. Return a dictionary with values to
+           add to an output row"""
         raise NotImplementedError("This class must be overridden")
 
     def short_repr(self, code):
@@ -27,6 +42,70 @@ class Analyzer(object):
         """
         return code
 
+    def load(self, data):
+        """Prepare voting data from the Riksdagen API for analyze.
+           data is a pandas dataframe
+        """
+        # Take only "sakfrågan" in account
+        data = data[data.avser == "sakfrågan"]
+        self.votes = pandas.pivot_table(data, values=["rost"],
+                                        index=["punkt"], columns=["parti"],
+                                        aggfunc=votes_from_rawdata)
+        self.num_votes = len(self.votes)
+
+        # put dates, and utskott in a smaller dict, for convinience
+        self.metadict = {row[1]["punkt"]: (row[1]["datum"],
+                                           row[1]["beteckning"])
+                         for row in data.iterrows()}
+
+    def run(self, screen_dump=False):
+        i = 0
+        output_data = []
+        for vote in self.votes.iterrows():
+            i += 1
+            vote_id = vote[0]
+            # print("Analyzing vote %s/%s: %s" % (i, self.num_votes, vote_id))
+            analysis = self.analyze_vote(vote)
+
+            voting_url = "http://data.riksdagen.se/votering/%s/json" % vote_id
+            if self.offline:
+                title = None
+                doc = None
+            else:
+                r = requests.get(voting_url)
+                if r.status_code == 200:
+                    res = r.json()
+                    title = res["votering"]["dokument"]["titel"]
+                    if res["votering"]["dokument"]["subtitel"]:
+                        title += u" – "
+                        title += res["votering"]["dokument"]["subtitel"]
+                    doc = res["votering"]["dokument"]["dokument_url_html"]
+                else:
+                    title = None
+                    doc = None
+
+            utskott = sub(r'[0-9]', "",
+                          self.metadict[vote_id][1]).decode('utf-8')
+            date = self.metadict[vote_id][0]
+            row_data = {'id': vote_id,
+                        'date': date,
+                        'month': date[:7],
+                        'halfyear': (int(date[5:7]) > 6) + 1,
+                        'url': voting_url,
+                        'title': title,
+                        'document': doc,
+                        'utskott': utskott
+                        }
+            for k, v in analysis.iteritems():
+                row_data[k] = v
+
+            output_data.append(row_data)
+
+            if screen_dump is True:
+                self.short_repr(analysis)
+
+        return output_data
+
 
 class Friends(Analyzer):
     """Find out who voted with whom
@@ -34,12 +113,15 @@ class Friends(Analyzer):
 
     fields = None  # Populate on init
 
-    def __init__(self):
+    def __init__(self, party=None, threshold=None, offline=False):
         Analyzer.__init__(self, None)
-        parties = self.blocks.parties
-        self.fields = ["%s_%s" % (a, b) for a in parties for b in parties if a != b]
 
-    def run(self, vote):
+        # create pairs of parties
+        parties = self.blocks.parties
+        self.party_pairs = list(set([frozenset([a, b])
+                                for a in parties for b in parties if a != b]))
+
+    def analyze_vote(self, vote):
         party_votes = {}
         for k, v in vote[1].iteritems():
             party = k[1]
@@ -51,14 +133,14 @@ class Friends(Analyzer):
                 party = "FP"
             if v is not None:
                 party_votes[party] = v
-        output_dict = {a: None for a in self.fields}
-        for party_a, party_vote_a in party_votes.iteritems():
-            for party_b, party_vote_b in party_votes.iteritems():
-                if party_a == party_b:
-                    continue
-                if party_vote_a.max_index() == party_vote_b.max_index():
-                    key = "%s_%s" % (party_a, party_b)
-                    output_dict[key] = 1
+        output_dict = {}
+        for pair in self.party_pairs:
+            a, b = list(pair)
+            key = "%s_%s" % (a, b)
+            if party_votes[a].max_index() == party_votes[b].max_index():
+                output_dict[key] = 1
+            else:
+                output_dict[key] = 0
         return output_dict
 
 
@@ -68,11 +150,9 @@ class Supporters(Analyzer):
 
     fields = ["category", "party"]
 
-    def __init__(self, party, threshold):
-        Analyzer.__init__(self, party)
-        self.threshold = threshold
+    def analyze_vote(self, vote):
+        date = self.metadict[vote[0]][0]
 
-    def run(self, vote, date):
         self.gov = self.blocks.what_gov(date)
         gov_votes = Votes(0, 0, 0)
         party_votes = {}
@@ -117,10 +197,6 @@ class Kingmaking(Analyzer):
 
     fields = ["category"]
 
-    def __init__(self, party, threshold):
-        Analyzer.__init__(self, party)
-        self.threshold = threshold
-
     def short_repr(self, analysis):
         if analysis["category"] is not None:
             stdout.write(["░", "█"][analysis["category"]])
@@ -128,7 +204,8 @@ class Kingmaking(Analyzer):
             stdout.write(" ")
         stdout.flush()
 
-    def run(self, vote, date):
+    def analyze_vote(self, vote):
+        date = self.metadict[vote[0]][0]
         # Find out what government is in charge
         self.gov = self.blocks.what_gov(date)["parties"]
 
@@ -170,10 +247,6 @@ class Loyalty(Analyzer):
 
     fields = ["category"]
 
-    def __init__(self, party, threshold):
-        Analyzer.__init__(self, party)
-        self.threshold = threshold
-
     def short_repr(self, analysis):
         if analysis["category"] is not None:
             stdout.write(["░",
@@ -185,7 +258,7 @@ class Loyalty(Analyzer):
             stdout.write(" ")
         stdout.flush()
 
-    def run(self, vote):
+    def analyze_vote(self, vote):
         # Get sum of votes by block
         # and for out party
         block_votes = {b: Votes(0, 0, 0) for b in self.blocks.blocks}
