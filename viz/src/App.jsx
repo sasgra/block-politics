@@ -43,15 +43,15 @@ function App ({ context, dispatch, props }) {
         <div class="bars bars-negative" style="width:100%">
         { data[selected].values.map((d, i) =>
           d < 0
-          ? <Bar party={data[selected].keys[i]} visible={true} votes={d} index={i} xScale={xScale} />
-          : <Bar party={data[selected].keys[i]} visible={false} votes={d} index={i} xScale={xScale} />
+          ? <Bar party={data[selected].keys[i]} align={'right'} type={'value'} votes={d} index={i} xScale={xScale} />
+          : <Bar party={data[selected].keys[i]} align={'right'} type={'label'} votes={d} index={i} xScale={xScale} />
         )}
         </div>
         <div class="bars bars-positive" style="width:100%">
         { data[selected].values.map((d, i) =>
           d > 0
-          ? <Bar party={data[selected].keys[i]} visible={true} votes={d} index={i} xScale={xScale} />
-          : <Bar party={data[selected].keys[i]} visible={false} votes={d} index={i} xScale={xScale} />
+          ? <Bar party={data[selected].keys[i]} align={'left'} type={'value'} votes={d} index={i} xScale={xScale} />
+          : <Bar party={data[selected].keys[i]} align={'left'} type={'label'} votes={d} index={i} xScale={xScale} />
         )}
         </div>
       </div>

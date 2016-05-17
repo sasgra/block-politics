@@ -1,3 +1,11 @@
+hr {
+  border:none;
+  border-bottom: 1px solid #ccc;
+  margin-top: 30px;
+}
+
+/**/
+
 .chart {
   width: 90%;
   padding-left: 5%;
@@ -5,33 +13,10 @@
   margin-top: 30px;
 }
 
-hr {
-  border:none;
-  border-bottom: 1px solid #ccc;
-  margin-top: 30px;
-}
-
-.bar {
-  font-family: sans-serif;
-  font-size: 12px;
-  padding: 3px 0;
-  line-height: 1em;
-}
-
 .bar-group {
   display: flex;
-}
-.bar-invisible .value {
-  background-color: transparent;
-  /*text-indent: -99999px;*/
-}
-
-.bar-invisible {
-  padding-top: 0.6em;
-}
-
-.bar-visible {
-  padding-bottom: 0.6em;
+  background-color: #F3F3F3;
+  padding: 20px;
 }
 
 .bars {
@@ -51,29 +36,16 @@ hr {
   text-align: left;
 }
 
-.chart .bar {
-  /*display: flex;*/
-  /*flex-direction: row;*/
-  /*position: relative;*/
-}
-
-.bar .value {
-  /*position: absolute;*/
-  font: 10px sans-serif;
-  background-color: steelblue;
-  text-align: right;
-  padding: 0;
+.bar {
+  transition: width 0.5s;
+  height: 20px;
   margin-bottom: 1px;
-  color: white;
-  transition: all 0.5s;
 }
-/*.chart .label{
-  width: 40px;
-  border-right: 1px solid;
-  padding: 0;
-  margin: 0;
-}*/
-.chart {
-  /*display: flex;*/
-  /*flex-direction: column;*/
+.bar-label {
+  font: 10px sans-serif;
+  line-height: 2em;
+}
+.bar-value {
+  background-color: steelblue;
+  color: white;
 }

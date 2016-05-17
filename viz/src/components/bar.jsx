@@ -8,30 +8,20 @@ import { padding, labelWidth, labelBorder, height } from '../constants.js'
 //   </div>
 
 const Bar = ({ context, dispatch, props }) => {
-  const { xScale, index, party, votes, visible } = props
+  const { xScale, index, party, votes, type, align } = props
   const isPositive = votes > 0
-  const isVisible = visible ? 'visible' : 'invisible'
   const scaledValue = xScale(Math.abs(votes))
-  const floatVal = isPositive ? 'left' : 'right'
-  const width = visible ? `calc(${scaledValue}%)` : 0
+  const floatVal = type === 'value' ? align : 'none'
+  const width = type === 'value' ? `calc(${scaledValue}%)` : '100%'
 
-  return <div class={`bar bar-${isVisible}`} style={
-      `float: ${floatVal};` +
-      // `margin-bottom: ${padding}px;` +
-      // `top: ${(height * index)}px;` +
-      `width: 100%;`
-    }>
-    { visible
-      ? <div class="label"></div>
-      : <div class="label">{party} with {Math.abs(votes)}%</div>
-    }
-    <div class="value" title={votes} key={index} style={
+  return <div class={`bar bar-${type}`} key={index} style={
      `float: ${floatVal};` +
-     `width: ${width};` +
-     `height: ${height}px`
-    //  `padding: ${padding}px;`
-   }></div>
-  </div>
+     `width: ${width};`
+    }>{
+      type === 'value'
+      ? ''
+      : `${party} with ${Math.abs(votes)}%`
+    }</div>
 }
 
 export default Bar

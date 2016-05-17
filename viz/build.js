@@ -2895,14 +2895,14 @@
 	        'div',
 	        { 'class': 'bars bars-negative', style: 'width:100%' },
 	        data[selected].values.map(function (d, i) {
-	          return d < 0 ? (0, _deku.element)(_bar2.default, { party: data[selected].keys[i], visible: true, votes: d, index: i, xScale: xScale }) : (0, _deku.element)(_bar2.default, { party: data[selected].keys[i], visible: false, votes: d, index: i, xScale: xScale });
+	          return d < 0 ? (0, _deku.element)(_bar2.default, { party: data[selected].keys[i], align: 'right', type: 'value', votes: d, index: i, xScale: xScale }) : (0, _deku.element)(_bar2.default, { party: data[selected].keys[i], align: 'right', type: 'label', votes: d, index: i, xScale: xScale });
 	        })
 	      ),
 	      (0, _deku.element)(
 	        'div',
 	        { 'class': 'bars bars-positive', style: 'width:100%' },
 	        data[selected].values.map(function (d, i) {
-	          return d > 0 ? (0, _deku.element)(_bar2.default, { party: data[selected].keys[i], visible: true, votes: d, index: i, xScale: xScale }) : (0, _deku.element)(_bar2.default, { party: data[selected].keys[i], visible: false, votes: d, index: i, xScale: xScale });
+	          return d > 0 ? (0, _deku.element)(_bar2.default, { party: data[selected].keys[i], align: 'left', type: 'value', votes: d, index: i, xScale: xScale }) : (0, _deku.element)(_bar2.default, { party: data[selected].keys[i], align: 'left', type: 'label', votes: d, index: i, xScale: xScale });
 	        })
 	      )
 	    )
@@ -2974,31 +2974,18 @@
 	  var index = props.index;
 	  var party = props.party;
 	  var votes = props.votes;
-	  var visible = props.visible;
+	  var type = props.type;
+	  var align = props.align;
 
 	  var isPositive = votes > 0;
-	  var isVisible = visible ? 'visible' : 'invisible';
 	  var scaledValue = xScale(Math.abs(votes));
-	  var floatVal = isPositive ? 'left' : 'right';
-	  var width = visible ? 'calc(' + scaledValue + '%)' : 0;
+	  var floatVal = type === 'value' ? align : 'none';
+	  var width = type === 'value' ? 'calc(' + scaledValue + '%)' : '100%';
 
 	  return (0, _deku.element)(
 	    'div',
-	    { 'class': 'bar bar-' + isVisible, style: 'float: ' + floatVal + ';' +
-	      // `margin-bottom: ${padding}px;` +
-	      // `top: ${(height * index)}px;` +
-	      'width: 100%;' },
-	    visible ? (0, _deku.element)('div', { 'class': 'label' }) : (0, _deku.element)(
-	      'div',
-	      { 'class': 'label' },
-	      party,
-	      ' with ',
-	      Math.abs(votes),
-	      '%'
-	    ),
-	    (0, _deku.element)('div', { 'class': 'value', title: votes, key: index, style: 'float: ' + floatVal + ';' + ('width: ' + width + ';') + ('height: ' + _constants.height + 'px')
-	      //  `padding: ${padding}px;`
-	    })
+	    { 'class': 'bar bar-' + type, key: index, style: 'float: ' + floatVal + ';' + ('width: ' + width + ';') },
+	    type === 'value' ? '' : party + ' with ' + Math.abs(votes) + '%'
 	  );
 	};
 
