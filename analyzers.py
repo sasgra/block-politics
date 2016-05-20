@@ -24,11 +24,15 @@ class Analyzer(object):
                     "intressent_id", "parti", "valkrets", "rost",
                     "avser", "banknummer", "kon", "fodd", "datum"]
 
-    def __init__(self, party=None, threshold=None, offline=False):
+    def __init__(self, party=None,
+                 threshold=None, offline=False,
+                 end_date=None, start_date=None):
         self.party = party
         self.block = self.blocks.what_block(party)
         self.threshold = threshold
         self.offline = offline
+        self.end_date = end_date
+        self.start_date = start_date
 
     def analyze_vote(self, vote):
         """Analyse of this vote. Return a dictionary with values to
@@ -47,7 +51,10 @@ class Analyzer(object):
            data is a pandas dataframe
         """
         # Take only "sakfrågan" in account
-        data = data[data.avser == "sakfrågan"]
+        # filter by date
+        data = data[(data.avser == "sakfrågan") &
+                    (data.datum <= self.end_date) &
+                    (data.datum >= self.start_date)]
         self.votes = pandas.pivot_table(data, values=["rost"],
                                         index=["punkt"], columns=["parti"],
                                         aggfunc=votes_from_rawdata)
@@ -113,8 +120,10 @@ class Friends(Analyzer):
 
     fields = None  # Populate on init
 
-    def __init__(self, party=None, threshold=None, offline=False):
-        Analyzer.__init__(self, None)
+    def __init__(self, party=None,
+                 threshold=None, offline=False,
+                 end_date=None, start_date=None):
+        Analyzer.__init__(self, None, threshold, offline, end_date=end_date, start_date=start_date)
 
         # create pairs of parties
         parties = self.blocks.parties
@@ -125,13 +134,16 @@ class Friends(Analyzer):
         """Do some postprocessing"""
         party_pairs = {("%s_%s" % (list(pair)[0], list(pair)[1])): 0
                        for pair in self.party_pairs}
-
+        totals = {("%s_%s" % (list(pair)[0], list(pair)[1])): 0
+                  for pair in self.party_pairs}
         for vote in self.votes.iterrows():
             analysis = self.analyze_vote(vote)
             for party_pair, v in analysis.iteritems():
                 party_pairs[party_pair] += v
+                if v != 0:
+                    totals[party_pair] += 1
 
-        return [party_pairs]
+        return [{key: float(party_pairs[key]) / float(totals[key]) for key in party_pairs}]
 
     def analyze_vote(self, vote):
         party_votes = {}
@@ -149,8 +161,12 @@ class Friends(Analyzer):
         for pair in self.party_pairs:
             a, b = list(pair)
             key = "%s_%s" % (a, b)
-            if party_votes[a].max_index() == party_votes[b].max_index():
-                output_dict[key] = 1
+            if (party_votes[a].margin() > self.threshold) and\
+               (party_votes[b].margin() > self.threshold):
+                if party_votes[a].max_index() == party_votes[b].max_index():
+                    output_dict[key] = 1
+                else:
+                    output_dict[key] = -1
             else:
                 output_dict[key] = 0
         return output_dict
