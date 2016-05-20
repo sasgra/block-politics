@@ -50,11 +50,11 @@
 
 	var _redux = __webpack_require__(26);
 
-	var _data = __webpack_require__(40);
+	var _data = __webpack_require__(39);
 
 	var _data2 = _interopRequireDefault(_data);
 
-	var _App = __webpack_require__(41);
+	var _App = __webpack_require__(40);
 
 	var _App2 = _interopRequireDefault(_App);
 
@@ -1794,32 +1794,32 @@
 /* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
+	'use strict';
 
 	exports.__esModule = true;
 	exports.compose = exports.applyMiddleware = exports.bindActionCreators = exports.combineReducers = exports.createStore = undefined;
 
-	var _createStore = __webpack_require__(28);
+	var _createStore = __webpack_require__(27);
 
 	var _createStore2 = _interopRequireDefault(_createStore);
 
-	var _combineReducers = __webpack_require__(35);
+	var _combineReducers = __webpack_require__(34);
 
 	var _combineReducers2 = _interopRequireDefault(_combineReducers);
 
-	var _bindActionCreators = __webpack_require__(37);
+	var _bindActionCreators = __webpack_require__(36);
 
 	var _bindActionCreators2 = _interopRequireDefault(_bindActionCreators);
 
-	var _applyMiddleware = __webpack_require__(38);
+	var _applyMiddleware = __webpack_require__(37);
 
 	var _applyMiddleware2 = _interopRequireDefault(_applyMiddleware);
 
-	var _compose = __webpack_require__(39);
+	var _compose = __webpack_require__(38);
 
 	var _compose2 = _interopRequireDefault(_compose);
 
-	var _warning = __webpack_require__(36);
+	var _warning = __webpack_require__(35);
 
 	var _warning2 = _interopRequireDefault(_warning);
 
@@ -1831,7 +1831,7 @@
 	*/
 	function isCrushed() {}
 
-	if (process.env.NODE_ENV !== 'production' && typeof isCrushed.name === 'string' && isCrushed.name !== 'isCrushed') {
+	if (false) {
 	  (0, _warning2["default"])('You are currently using minified code outside of NODE_ENV === \'production\'. ' + 'This means that you are running a slower development build of Redux. ' + 'You can use loose-envify (https://github.com/zertosh/loose-envify) for browserify ' + 'or DefinePlugin for webpack (http://stackoverflow.com/questions/30030031) ' + 'to ensure you have the correct code for your production build.');
 	}
 
@@ -1840,110 +1840,9 @@
 	exports.bindActionCreators = _bindActionCreators2["default"];
 	exports.applyMiddleware = _applyMiddleware2["default"];
 	exports.compose = _compose2["default"];
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(27)))
 
 /***/ },
 /* 27 */
-/***/ function(module, exports) {
-
-	// shim for using process in browser
-
-	var process = module.exports = {};
-	var queue = [];
-	var draining = false;
-	var currentQueue;
-	var queueIndex = -1;
-
-	function cleanUpNextTick() {
-	    if (!draining || !currentQueue) {
-	        return;
-	    }
-	    draining = false;
-	    if (currentQueue.length) {
-	        queue = currentQueue.concat(queue);
-	    } else {
-	        queueIndex = -1;
-	    }
-	    if (queue.length) {
-	        drainQueue();
-	    }
-	}
-
-	function drainQueue() {
-	    if (draining) {
-	        return;
-	    }
-	    var timeout = setTimeout(cleanUpNextTick);
-	    draining = true;
-
-	    var len = queue.length;
-	    while(len) {
-	        currentQueue = queue;
-	        queue = [];
-	        while (++queueIndex < len) {
-	            if (currentQueue) {
-	                currentQueue[queueIndex].run();
-	            }
-	        }
-	        queueIndex = -1;
-	        len = queue.length;
-	    }
-	    currentQueue = null;
-	    draining = false;
-	    clearTimeout(timeout);
-	}
-
-	process.nextTick = function (fun) {
-	    var args = new Array(arguments.length - 1);
-	    if (arguments.length > 1) {
-	        for (var i = 1; i < arguments.length; i++) {
-	            args[i - 1] = arguments[i];
-	        }
-	    }
-	    queue.push(new Item(fun, args));
-	    if (queue.length === 1 && !draining) {
-	        setTimeout(drainQueue, 0);
-	    }
-	};
-
-	// v8 likes predictible objects
-	function Item(fun, array) {
-	    this.fun = fun;
-	    this.array = array;
-	}
-	Item.prototype.run = function () {
-	    this.fun.apply(null, this.array);
-	};
-	process.title = 'browser';
-	process.browser = true;
-	process.env = {};
-	process.argv = [];
-	process.version = ''; // empty string to avoid regexp issues
-	process.versions = {};
-
-	function noop() {}
-
-	process.on = noop;
-	process.addListener = noop;
-	process.once = noop;
-	process.off = noop;
-	process.removeListener = noop;
-	process.removeAllListeners = noop;
-	process.emit = noop;
-
-	process.binding = function (name) {
-	    throw new Error('process.binding is not supported');
-	};
-
-	process.cwd = function () { return '/' };
-	process.chdir = function (dir) {
-	    throw new Error('process.chdir is not supported');
-	};
-	process.umask = function() { return 0; };
-
-
-/***/ },
-/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1952,11 +1851,11 @@
 	exports.ActionTypes = undefined;
 	exports["default"] = createStore;
 
-	var _isPlainObject = __webpack_require__(29);
+	var _isPlainObject = __webpack_require__(28);
 
 	var _isPlainObject2 = _interopRequireDefault(_isPlainObject);
 
-	var _symbolObservable = __webpack_require__(33);
+	var _symbolObservable = __webpack_require__(32);
 
 	var _symbolObservable2 = _interopRequireDefault(_symbolObservable);
 
@@ -2210,12 +2109,12 @@
 	}
 
 /***/ },
-/* 29 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var getPrototype = __webpack_require__(30),
-	    isHostObject = __webpack_require__(31),
-	    isObjectLike = __webpack_require__(32);
+	var getPrototype = __webpack_require__(29),
+	    isHostObject = __webpack_require__(30),
+	    isObjectLike = __webpack_require__(31);
 
 	/** `Object#toString` result references. */
 	var objectTag = '[object Object]';
@@ -2286,7 +2185,7 @@
 
 
 /***/ },
-/* 30 */
+/* 29 */
 /***/ function(module, exports) {
 
 	/* Built-in method references for those with the same name as other `lodash` methods. */
@@ -2307,7 +2206,7 @@
 
 
 /***/ },
-/* 31 */
+/* 30 */
 /***/ function(module, exports) {
 
 	/**
@@ -2333,7 +2232,7 @@
 
 
 /***/ },
-/* 32 */
+/* 31 */
 /***/ function(module, exports) {
 
 	/**
@@ -2368,18 +2267,18 @@
 
 
 /***/ },
-/* 33 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/* global window */
 	'use strict';
 
-	module.exports = __webpack_require__(34)(global || window || this);
+	module.exports = __webpack_require__(33)(global || window || this);
 
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 34 */
+/* 33 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -2404,21 +2303,21 @@
 
 
 /***/ },
-/* 35 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
+	'use strict';
 
 	exports.__esModule = true;
 	exports["default"] = combineReducers;
 
-	var _createStore = __webpack_require__(28);
+	var _createStore = __webpack_require__(27);
 
-	var _isPlainObject = __webpack_require__(29);
+	var _isPlainObject = __webpack_require__(28);
 
 	var _isPlainObject2 = _interopRequireDefault(_isPlainObject);
 
-	var _warning = __webpack_require__(36);
+	var _warning = __webpack_require__(35);
 
 	var _warning2 = _interopRequireDefault(_warning);
 
@@ -2510,7 +2409,7 @@
 	      throw sanityError;
 	    }
 
-	    if (process.env.NODE_ENV !== 'production') {
+	    if (false) {
 	      var warningMessage = getUnexpectedStateShapeWarningMessage(state, finalReducers, action);
 	      if (warningMessage) {
 	        (0, _warning2["default"])(warningMessage);
@@ -2534,10 +2433,9 @@
 	    return hasChanged ? nextState : state;
 	  };
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(27)))
 
 /***/ },
-/* 36 */
+/* 35 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -2567,7 +2465,7 @@
 	}
 
 /***/ },
-/* 37 */
+/* 36 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -2623,7 +2521,7 @@
 	}
 
 /***/ },
-/* 38 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2634,7 +2532,7 @@
 
 	exports["default"] = applyMiddleware;
 
-	var _compose = __webpack_require__(39);
+	var _compose = __webpack_require__(38);
 
 	var _compose2 = _interopRequireDefault(_compose);
 
@@ -2686,7 +2584,7 @@
 	}
 
 /***/ },
-/* 39 */
+/* 38 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -2731,7 +2629,7 @@
 	}
 
 /***/ },
-/* 40 */
+/* 39 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -2797,7 +2695,7 @@
 	exports.default = initialData;
 
 /***/ },
-/* 41 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2808,7 +2706,7 @@
 
 	var _deku = __webpack_require__(1);
 
-	var _constants = __webpack_require__(46);
+	var _constants = __webpack_require__(41);
 
 	var _actions = __webpack_require__(42);
 
@@ -2912,6 +2810,20 @@
 	exports.default = App;
 
 /***/ },
+/* 41 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var padding = exports.padding = 5;
+	var labelWidth = exports.labelWidth = 30;
+	var labelBorder = exports.labelBorder = 1;
+	var height = exports.height = 20;
+
+/***/ },
 /* 42 */
 /***/ function(module, exports) {
 
@@ -2958,7 +2870,7 @@
 
 	var _deku = __webpack_require__(1);
 
-	var _constants = __webpack_require__(46);
+	var _constants = __webpack_require__(41);
 
 	// const EmptyBar = ({ props: { party, percent } }) =>
 	//   <div class="bar bar-invisible" style={`width: 100%; height: ${height}px`}>
@@ -3018,7 +2930,7 @@
 
 	var _redux = __webpack_require__(26);
 
-	var _data = __webpack_require__(40);
+	var _data = __webpack_require__(39);
 
 	var _data2 = _interopRequireDefault(_data);
 
@@ -3066,20 +2978,5 @@
 	  return state.data;
 	}
 
-/***/ },
-/* 46 */
-/***/ function(module, exports) {
-
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	var padding = exports.padding = 5;
-	var labelWidth = exports.labelWidth = 30;
-	var labelBorder = exports.labelBorder = 1;
-	var height = exports.height = 20;
-
 /***/ }
 /******/ ]);
-//# sourceMappingURL=build.js.map

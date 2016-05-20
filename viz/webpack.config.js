@@ -1,5 +1,8 @@
 var path = require('path')
 var webpack = require('webpack')
+var InlineEnviromentVariablesPlugin = require('inline-environment-variables-webpack-plugin');
+
+console.log(process.env.NODE_ENV)
 
 module.exports = {
   entry: './src/boot.jsx',
@@ -18,5 +21,8 @@ module.exports = {
         }
       }
     ]
-  }
+  },
+  plugins: [
+    new InlineEnviromentVariablesPlugin('NODE_ENV')
+  ]
 }
