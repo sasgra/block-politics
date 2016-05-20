@@ -1,19 +1,10 @@
 import { combineReducers } from 'redux'
 import initialState from './data.js'
 
-function rdmParty () {
-  const parties = Object.keys(initialState.data)
-  return parties[Math.floor(Math.random() * parties.length)]
-}
-
 function selectedReducer (state, { type, payload }) {
   switch (type) {
     case 'SELECT_PARTY':
       return payload
-
-    case 'CLICKED':
-      const sel = rdmParty()
-      return sel
 
     default: return state
   }
@@ -21,14 +12,7 @@ function selectedReducer (state, { type, payload }) {
 
 // receives full state, returns only data
 function dataReducer (state, { type, payload }) {
-  // console.log(state.data)
   switch (type) {
-    // case 'CLICKED':
-    //   const selected = state.selected
-    //   const data = state.data
-    //   const nuState = Object.assign({}, data, { [selected]: data[selected] })
-    //   return Object.assign({}, data, { [selected]: data[selected] })
-
     default: return state.data
   }
 
