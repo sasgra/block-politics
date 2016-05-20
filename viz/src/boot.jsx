@@ -1,9 +1,9 @@
 
-import {element, createApp} from 'deku'
-import {createStore} from 'redux'
+import { element, createApp } from 'deku'
+import { createStore } from 'redux'
 
 import initialState from './data.js'
-import App from './App.jsx'
+import App from './app.jsx'
 import { log } from './actions.js'
 import reducer from './reducers.js'
 

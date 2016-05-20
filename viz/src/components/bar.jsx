@@ -7,6 +7,8 @@ import { padding, labelWidth, labelBorder, height } from '../constants.js'
 //     <div class="label">{party} with {Math.abs(percent)}%</div>
 //   </div>
 
+const { abs, round } = Math
+
 const Bar = ({ context, dispatch, props }) => {
   const { xScale, index, party, votes, type, align } = props
   const isPositive = votes > 0
@@ -20,7 +22,7 @@ const Bar = ({ context, dispatch, props }) => {
     }>{
       type === 'value'
       ? ''
-      : `${party} with ${Math.abs(votes)}%`
+      : `${round(abs(xScale(votes)))}% ${isPositive ? 'with' : 'against'} ${party}`
     }</div>
 }
 
