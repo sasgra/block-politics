@@ -1,11 +1,10 @@
 {
   "scripts": {
-    "watch": "npm start -- -w --devtool cheap-source-map",
+    "watch": "NODE_ENV='development' npm start -- -w --devtool cheap-source-map",
     "start": "webpack",
-    "build": "NODE_ENV='production' npm start"
+    "build": "NODE_ENV='production' npm start -- --optimize-minimize"
   },
   "dependencies": {
-    "d3-dsv": "^0.3.2",
     "deku": "^2.0.0-rc16",
     "redux": "^3.5.2"
   },
