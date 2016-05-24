@@ -43,18 +43,28 @@ SD
 KD:	0.1057142857	-0.4114649682
 V:	-0.6876790831	-0.4402035623
 */
-
+/*
+V: Vänsterpartiet
+S: Socialdemokraterna
+MP: Miljöpartiet
+C: Centerpartiet
+FP: Liberalerna (formerly Folkpartiet)
+KD: Kristdemokraterna
+M: Moderaterna
+SD: Sverigedemokraterna
+*/
 const initialData = {
   selected: 'C',
+  index: ['V', 'S', 'MP', 'C', 'FP', 'KD', 'M', 'SD'],
   parties: {
-    FP: '(FP) Feministiskt partiet?',
-    S: '(S) Socialdemokratiska',
-    M: '(M) Moderata samlingspartiet',
-    MP: '(MP) Miljöpartiet',
-    FP: '(FP) Feministiskt partiet?',
-    SD: '(SD) Sverigedemokraterna',
-    C: '(C) Centerpartiet',
-    KD: '(KD) Kristdemokraterna'
+    V: 'Vänsterpartiet',
+    S: 'Socialdemokraterna',
+    MP: 'Miljöpartiet',
+    C: 'Centerpartiet',
+    FP: 'Liberalerna',
+    KD: 'Kristdemokraterna',
+    M: 'Moderaterna',
+    SD: 'Sverigedemokraterna'
   },
   data: {
     FP: {
@@ -112,5 +122,7 @@ const initialData = {
 // percent based
 initialData.max = 1
 initialData.min = -1
+
+initialData.index = initialData.index.filter(i => initialData.data.hasOwnProperty(i))
 
 export default initialData
