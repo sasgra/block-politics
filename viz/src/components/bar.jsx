@@ -12,17 +12,18 @@ const { abs, round } = Math
 const Bar = ({ context, dispatch, props }) => {
   const { xScale, index, party, votes, type, align } = props
   const isPositive = votes > 0
-  const scaledValue = xScale(Math.abs(votes))
+  const scaledValue = xScale(abs(votes))
   const floatVal = type === 'value' ? align : 'none'
-  const width = type === 'value' ? `calc(${scaledValue}%)` : '100%'
+  const width = type === 'value' ? `${scaledValue}%` : '100%'
+  const title = type === 'value' ? `${round(scaledValue)} % ${isPositive ? 'med' : 'mot'} ${party} (${votes})` : null
 
-  return <div class={`bar bar-${type}`} key={index} style={
+  return <div class={`bar bar-${type}`} key={index} title={title} data-value={scaledValue} data-votes={votes} style={
      `float: ${floatVal};` +
      `width: ${width};`
     }>{
       type === 'value'
       ? ''
-      : `${round(abs(xScale(votes)))}% ${isPositive ? 'with' : 'against'} ${party}`
+      : `${round(scaledValue)} % ${isPositive ? 'med' : 'mot'} ${party}`
     }</div>
 }
 
