@@ -1,1 +1,6 @@
-analyzers.pyc
+*.pyc
+data/~*
+data/*.xlsx
+viz/*.map
+viz/_build*
+viz-react

@@ -1,0 +1,51 @@
+hr {
+  border:none;
+  border-bottom: 1px solid #ccc;
+  margin-top: 30px;
+}
+
+/**/
+
+.chart {
+  width: 90%;
+  padding-left: 5%;
+  max-width: 600px;
+  margin-top: 30px;
+}
+
+.bar-group {
+  display: flex;
+  background-color: #F3F3F3;
+  padding: 20px;
+}
+
+.bars {
+  display: flex;
+  flex-direction: column;
+}
+
+.bars-negative {
+  align-items: flex-end;
+  margin-right: 5px;
+  padding-right: 5px;
+  border-right: 1px solid #ccc;
+  text-align: right;
+}
+.bars-positive {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.bar {
+  transition: width 0.5s;
+  height: 20px;
+  margin-bottom: 1px;
+}
+.bar-label {
+  font: 10px sans-serif;
+  line-height: 2em;
+}
+.bar-value {
+  background-color: steelblue;
+  color: white;
+}
