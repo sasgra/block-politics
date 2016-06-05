@@ -3,7 +3,7 @@ import { padding, labelWidth, labelBorder, height } from '../constants.js'
 
 const { abs, round } = Math
 const labels = (label) => label === 'FP' ? 'L' : label
-const Bar = ({ context, dispatch, props }) => {
+const Axis = ({ context, dispatch, props }) => {
   const { values, keys, selected } = props
 
   return <div class={`axis`}>
@@ -17,4 +17,4 @@ const Bar = ({ context, dispatch, props }) => {
     </div>
 }
 
-export default Bar
+export default Axis
