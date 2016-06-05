@@ -51,8 +51,7 @@ hr {
   height: 19px;
   margin-bottom: 1px;
 }
-.axis ul li.selected,
-.bar.bar-label.bar-empty {
+.axis ul li.selected {
   color: #ccc;
 }
 .axis ul li > span {
@@ -78,10 +77,15 @@ hr {
 }
 .bar-value {
   background-color: steelblue;
-  color: white;
 }
-
 .bar em {
   font-weight: bold;
   font-style: normal;
+}
+.bar.bar-label.bar-empty {
+  opacity: 0;
+}
+
+.bar.update {
+  transition: width 0.5s, opacity 0.5s;
 }

@@ -3,8 +3,10 @@ import { padding, labelWidth, labelBorder, height } from '../constants.js'
 
 const { abs, round } = Math
 const tofixed = (val, n = 1) => parseFloat(val.toFixed(n))
+const replaceAll = (target, search, replacement) => target.split(search).join(replacement)
+const pathToId = (p) => replaceAll(p, '.', '-')
 
-const Bar = ({ context, dispatch, props }) => {
+const render = ({ context, dispatch, props, path }) => {
   const { xScale, index, party, votes, type, align } = props
   const isNull = votes == null
   const nullClass = isNull ? 'bar-empty' : ''
@@ -13,15 +15,24 @@ const Bar = ({ context, dispatch, props }) => {
   const floatVal = type === 'value' ? align : 'none'
   const width = type === 'value' ? `${scaledValue}%` : '100%'
   const title = type === 'value' ? `${round(scaledValue)} % ${isPositive ? 'med' : 'mot'} ${party} (${votes})` : null
+  const id = pathToId(path)
 
-  return <div class={`bar bar-${type} ${nullClass}`} key={index} title={title} data-value={scaledValue} data-votes={votes} style={
+  return <div id={id} class={`bar bar-${type} ${nullClass}`} key={index} title={title} data-value={scaledValue} data-votes={votes} style={
      `float: ${floatVal};` +
      `width: ${width};`
     }>{
       type === 'value'
       ? ''
-      : isNull ? '…' : `${tofixed(scaledValue)} % ${isPositive ? 'med' : 'mot'} ${party}`
+      : isNull ? ' ' : `${tofixed(scaledValue)} % ${isPositive ? 'med' : 'mot'} ${party}`
     }</div>
 }
 
-export default Bar
+function onUpdate ({ path }) {
+  const el = document.getElementById(pathToId(path))
+  el.classList.add("update")
+}
+
+export default {
+  render,
+  onUpdate
+}
