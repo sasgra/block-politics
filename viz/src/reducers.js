@@ -1,5 +1,5 @@
 import { combineReducers } from 'redux'
-import initialState from './data.js'
+import initialState from './data'
 
 function selectedReducer (state, { type, payload }) {
   switch (type) {
