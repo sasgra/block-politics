@@ -17,15 +17,16 @@ const render = ({ context, dispatch, props, path }) => {
   const title = type === 'value' ? `${round(scaledValue)} % ${isPositive ? 'med' : 'mot'} ${party} (${votes})` : null
   const id = pathToId(path)
 
-  return <div id={id} class={`bar bar-${type} ${nullClass}`} key={index} title={title} data-value={scaledValue} data-votes={votes} style={
+  return <div id={id} class={`bar bar-${type} ${nullClass}`} title={title} key={index} data-value={scaledValue} data-votes={votes} style={
      `float: ${floatVal};` +
      `width: ${width};`
     }>{
       type === 'value'
       ? ''
-      : isNull ? ' ' : `${tofixed(scaledValue)} % ${isPositive ? 'med' : 'mot'} ${party}`
+      : isNull ? ' ' : `${round(scaledValue)} % ${isPositive ? 'med' : 'mot'} ${party}`
     }</div>
 }
+// : isNull ? ' ' : `${tofixed(scaledValue)} % ${isPositive ? 'med' : 'mot'} ${party}`
 
 function onUpdate ({ path }) {
   const el = document.getElementById(pathToId(path))
