@@ -20,5 +20,25 @@ export default {
     M: 'Moderaterna',
     SD: 'Sverigedemokraterna'
   },
+  colors: {
+    V: '#AF0000',
+    S: '#EE2020',
+    MP: '#83CF39',
+    C: '#009933',
+    FP: '#6BB7EC',
+    KD: '#231977',
+    M: '#1B49DD',
+    SD: '#DDDD00'
+  },
+  contrast: {
+    V: 'white',
+    S: 'white',
+    MP: 'white',
+    C: 'white',
+    FP: 'white',
+    KD: 'white',
+    M: 'white',
+    SD: 'black'
+  },
   data: { FP, S, M, MP, SD, C, KD, V },
 }

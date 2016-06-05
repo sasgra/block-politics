@@ -7,7 +7,7 @@ const replaceAll = (target, search, replacement) => target.split(search).join(re
 const pathToId = (p) => replaceAll(p, '.', '-')
 
 const render = ({ context, dispatch, props, path }) => {
-  const { xScale, index, party, votes, type, align } = props
+  const { xScale, index, party, votes, type, align, color } = props
   const isNull = votes == null
   const nullClass = isNull ? 'bar-empty' : ''
   const isPositive = votes > 0
@@ -15,11 +15,13 @@ const render = ({ context, dispatch, props, path }) => {
   const floatVal = type === 'value' ? align : 'none'
   const width = type === 'value' ? `${scaledValue}%` : '100%'
   const title = type === 'value' ? `${round(scaledValue)} % ${isPositive ? 'med' : 'mot'} ${party} (${votes})` : null
+  const col = type === 'value' ? `${color}` : 'transparent'
   const id = pathToId(path)
 
   return <div id={id} class={`bar bar-${type} ${nullClass}`} title={title} key={index} data-value={scaledValue} data-votes={votes} style={
      `float: ${floatVal};` +
-     `width: ${width};`
+     `width: ${width};` +
+     `background-color: ${col};`
     }>{
       type === 'value'
       ? ''

@@ -7,7 +7,7 @@ import Stacked from './components/stacked-bars'
 import Combo from './components/combo'
 import Info from './components/info'
 
-function App ({ context: { index, selected, data, parties }, dispatch, props, path }) {
+function App ({ context: { index, selected, data, parties, colors, contrast }, dispatch, props, path }) {
 
   let
     xScale = (v) => v * 100,
@@ -17,17 +17,22 @@ function App ({ context: { index, selected, data, parties }, dispatch, props, pa
   return (
     <div>
       <Combo
+        style={
+           `background-color: ${colors[selected]};` +
+           `color: ${contrast[selected]};` +
+           `border-color: ${contrast[selected]};` +
+           `border-opacity: 0.5;`
+        }
         index={index}
         data={data}
         selected={selected}
         parties={parties}
         onChange={setCurrent(dispatch)}/>
-      <h1>{parties[selected]}</h1>
-      <h2 class="title">After</h2>
-      <Stacked selected={selected} index={index} values={values.after} xScale={xScale50} keys={keys}/>
+      <h2 class="title">Röstning sedan valet</h2>
+      <Stacked colors={colors} selected={selected} index={index} values={values.after} xScale={xScale50} keys={keys}/>
       <Info info={text}/>
-      <h2 class="title">Before</h2>
-      <Stacked selected={selected} index={index} values={values.before} xScale={xScale50} keys={keys}/>
+      <h2 class="title">Röstning under förra mandatperioden</h2>
+      <Stacked colors={colors} selected={selected} index={index} values={values.before} xScale={xScale50} keys={keys}/>
     </div>
   )
 }
