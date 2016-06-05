@@ -22,5 +22,8 @@ module.exports = {
   },
   plugins: [
     new InlineEnviromentVariablesPlugin('NODE_ENV')
-  ]
+  ],
+  resolve: {
+    extensions: ['', '.js', '.jsx', '.css', '.scss']
+  }
 }
