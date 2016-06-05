@@ -40,5 +40,9 @@ export default {
       null,
       -0.3941698352,
     ]
-  }
+  },
+  text: [
+    'Moderaternas voteringsmönster visar hur Alliansens röstning blivit mer splittrad. M röstar mot de andra partierna i Alliansen i en femtedel av voteringarna.',
+    'I tre av tio omröstningar röstar M och Sverigedemokraterna på samma alternativ.'
+  ]
 }

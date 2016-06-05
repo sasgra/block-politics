@@ -7,7 +7,7 @@ import KD from './kd'
 import M from './m'
 import SD from './sd'
 
-const initialData = {
+export default {
   selected: 'C',
   index: ['V', 'S', 'MP', 'C', 'FP', 'KD', 'M', 'SD'],
   parties: {
@@ -22,5 +22,3 @@ const initialData = {
   },
   data: { FP, S, M, MP, SD, C, KD, V },
 }
-
-export default initialData

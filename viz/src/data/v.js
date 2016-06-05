@@ -40,5 +40,9 @@ export default {
       -0.1781170483,
       -0.4402035623,
     ]
-  }
+  },
+  text: [
+    'Vänsterpartiet röstar med regeringen i tre fjärdedelar av alla voteringar.',
+    'Jämfört med förra mandatperioden röstar partiet betydligt oftare i linje med Socialdemokraterna och Miljöpartiet.'
+  ]
 }

@@ -40,5 +40,9 @@ export default {
       0.625477707,
       -0.4114649682,
     ]
-  }
+  },
+  text: [
+    'Från att ha varit helt trogna de andra allianspartierna röstar Kristdemokraterna nu självständigt i ungefär en femtedel av omröstningarna.',
+    'I sju av tio voteringar röstar man mot Sverigedemokraterna, vilket är en tydlig förändring mot förra mandatperioden då SD stödde KD och Alliansen i över hälften av voteringerna.'
+  ]
 }

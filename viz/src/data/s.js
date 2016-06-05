@@ -40,5 +40,10 @@ export default {
       0.2534678436,
       -0.1071878941,
     ]
-  }
+  },
+  text: [
+    'De flesta partierna röstar med, snarare än mot Socialdemokraterna. Det enda undantaget är Sverigedemokraterna',
+    'Under förra mandatperioden stack S ut som ett parti som saknade en tydlig "voteringspartner". Vänsterpartiet och Miljöpartiet röstade mest likt S, men bara i lite på hälften av omröstningarna.',
+    'Notera också att S röstar mer likt SD efter valet. Eller om man vänder på det, SD röstar oftare i linje med S.'
+  ]
 }

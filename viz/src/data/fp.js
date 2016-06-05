@@ -40,5 +40,10 @@ export default {
       0.6101910828,
       -0.4107142857,
     ]
-  }
+  },
+  text: [
+    'Liberalerna röstade under förra mandatperioden plikttroget i linje med resten av Alliansen.',
+    'Efter valet röstar L med de gamla regeringskollegorna i fyra av fem voteringar.',
+    'I två tredjedelar av omröstningarna stöjder L regeringen.'
+  ]
 }

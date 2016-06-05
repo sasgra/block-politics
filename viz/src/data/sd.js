@@ -40,5 +40,9 @@ export default {
       -0.3941698352,
       null,
     ]
-  }
+  },
+  text: [
+    'SD har blivit mer motvalls i voteringarna. Under förra mandatperioden röstade man med regeringen i lite på hälften av voteringarna, nu något färre än hälften.',
+    'Å andra sidan röstar SD betydligt oftare i linje med Socialdemokraterna, Miljöpartiet och även Vänsterpartiet nu än innan valet.'
+  ]
 }

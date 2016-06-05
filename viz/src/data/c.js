@@ -40,5 +40,10 @@ export default {
       0.6116751269,
       -0.447133758,
     ]
-  }
+  },
+  text: [
+    'Centerpartiet har gått från att som regeringsparti rösta helt och hållet med Alliansen, till att nu också gå sin egen väg.',
+    'Partiet bryter numer med de andra allianspartierna i ungefär en femtedel av voteringarna.',
+    'C och Sverigedemokraterna röstar efter valet mer sällan på samma alternativ.'
+  ]
 }

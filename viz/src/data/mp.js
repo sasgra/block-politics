@@ -40,5 +40,9 @@ export default {
       0.2582278481,
       -0.1037974684,
     ]
-  }
+  },
+  text: [
+    'Miljöpartiet röstar som väntat med Socialdemokraterna i nästan alla voteringar.',
+    'Det har skett en tydlig förändring sedan förra mandatperioden, då Vänsterpartiet var det parti som låg MP närmast i voteringarna.'
+  ]
 }
