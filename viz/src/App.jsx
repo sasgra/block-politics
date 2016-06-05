@@ -5,13 +5,15 @@ import { setCurrent } from './actions'
 import { scale } from './utils'
 import Stacked from './components/stacked-bars'
 import Combo from './components/combo'
+import Info from './components/info'
 
 function App ({ context: { index, selected, data, parties }, dispatch, props, path }) {
 
   let
     xScale = (v) => v * 100,
     keys = data[selected].keys,
-    values = data[selected].values
+    values = data[selected].values,
+    text = data[selected].text
 
   return (
     <div>
@@ -23,11 +25,12 @@ function App ({ context: { index, selected, data, parties }, dispatch, props, pa
         onChange={setCurrent(dispatch)}/>
       <h1>{parties[selected]}</h1>
       <hr />
-      <h2>Before</h2>
-      <Stacked selected={selected} index={index} values={values.before} xScale={xScale} keys={keys}/>
-      <hr />
       <h2>After</h2>
       <Stacked selected={selected} index={index} values={values.after} xScale={xScale} keys={keys}/>
+      <Info info={text}/>
+      <hr />
+      <h2>Before</h2>
+      <Stacked selected={selected} index={index} values={values.before} xScale={xScale} keys={keys}/>
     </div>
   )
 }
