@@ -3,4 +3,5 @@ data/~*
 data/*.xlsx
 viz/*.map
 viz/_build*
+viz/build*
 viz-react
