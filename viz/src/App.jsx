@@ -11,9 +11,8 @@ function App ({ context: { index, selected, data, parties }, dispatch, props, pa
 
   let
     xScale = (v) => v * 100,
-    keys = data[selected].keys,
-    values = data[selected].values,
-    text = data[selected].text
+    xScale50 = (v) => 50 + v * 50,
+    { keys, values, text } = data[selected]
 
   return (
     <div>
@@ -24,13 +23,11 @@ function App ({ context: { index, selected, data, parties }, dispatch, props, pa
         parties={parties}
         onChange={setCurrent(dispatch)}/>
       <h1>{parties[selected]}</h1>
-      <hr />
-      <h2>After</h2>
-      <Stacked selected={selected} index={index} values={values.after} xScale={xScale} keys={keys}/>
+      <h2 class="title">After</h2>
+      <Stacked selected={selected} index={index} values={values.after} xScale={xScale50} keys={keys}/>
       <Info info={text}/>
-      <hr />
-      <h2>Before</h2>
-      <Stacked selected={selected} index={index} values={values.before} xScale={xScale} keys={keys}/>
+      <h2 class="title">Before</h2>
+      <Stacked selected={selected} index={index} values={values.before} xScale={xScale50} keys={keys}/>
     </div>
   )
 }
