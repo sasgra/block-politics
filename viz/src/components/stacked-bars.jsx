@@ -1,8 +1,10 @@
 import { element } from 'deku'
-import Bar from './bar.jsx'
+import Bar from './bar'
+import Axis from './axis'
 
-const Stacked = ({ props: { values, keys, xScale } }) =>
+const Stacked = ({ props: { selected, values, keys, xScale } }) =>
   <div class="bar-group">
+    <Axis selected={selected} values={values} keys={keys} />
     <div class="bars bars-negative" style="width:100%">
     { values.map((d, i) =>
       <Bar

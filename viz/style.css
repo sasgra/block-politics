@@ -36,16 +36,52 @@ hr {
   text-align: left;
 }
 
-.bar {
-  transition: width 0.5s;
-  height: 20px;
+.axis {
+
+}
+.axis ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  width: 30px;
+  text-align: right;
+}
+
+.axis ul li {
+  height: 19px;
   margin-bottom: 1px;
 }
-.bar-label {
+.axis ul li.selected,
+.bar.bar-label.bar-empty {
+  color: #ccc;
+}
+.axis ul li > span {
+  display: inline-block;
+  border-bottom: 1px solid #ccc;
+  width: 5px;
+  margin-left: 3px;
+  border-right: 1px solid #ccc;
+}
+.axis ul li:first-child > span{
+  border-top: 1px solid #ccc;
+}
+
+.bar-label, .axis ul li {
   font: 10px sans-serif;
   line-height: 2em;
+}
+
+.bar {
+  height: 20px;
+  margin-bottom: 1px;
+  transition: width 0.5s;
 }
 .bar-value {
   background-color: steelblue;
   color: white;
+}
+
+.bar em {
+  font-weight: bold;
+  font-style: normal;
 }
