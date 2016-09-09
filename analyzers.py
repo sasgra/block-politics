@@ -26,15 +26,16 @@ class Analyzer(object):
 
     def __init__(self, party=None,
                  threshold=None, offline=False,
-                 end_date=None, start_date=None):
+                 end_date=None, start_date=None, *args, **kwargs):
         self.party = party
         self.block = self.blocks.what_block(party)
         self.threshold = threshold
         self.offline = offline
         self.end_date = end_date
         self.start_date = start_date
+        self.data = None
 
-    def analyze_vote(self, vote):
+    def analyze_vote(self, vote, vote_id):
         """Analyse of this vote. Return a dictionary with values to
            add to an output row"""
         raise NotImplementedError("This class must be overridden")
@@ -52,6 +53,7 @@ class Analyzer(object):
         """
         # Take only "sakfrågan" in account
         # filter by date
+        self.data = data
         data = data[(data.avser == "sakfrågan") &
                     (data.datum <= self.end_date) &
                     (data.datum >= self.start_date)]
@@ -66,13 +68,14 @@ class Analyzer(object):
                          for row in data.iterrows()}
 
     def run(self, screen_dump=False):
+        """ Fetch more data on vote from the API"""
         i = 0
         output_data = []
         for vote in self.votes.iterrows():
             i += 1
             vote_id = vote[0]
             # print("Analyzing vote %s/%s: %s" % (i, self.num_votes, vote_id))
-            analysis = self.analyze_vote(vote)
+            analysis = self.analyze_vote(vote, vote_id)
 
             voting_url = "http://data.riksdagen.se/votering/%s/json" % vote_id
             if self.offline:
@@ -145,7 +148,7 @@ class Friends(Analyzer):
 
         return [{key: float(party_pairs[key]) / float(totals[key]) for key in party_pairs}]
 
-    def analyze_vote(self, vote):
+    def analyze_vote(self, vote, vote_id):
         party_votes = {}
         for k, v in vote[1].iteritems():
             party = k[1]
@@ -172,13 +175,56 @@ class Friends(Analyzer):
         return output_dict
 
 
+class CommonGround(Analyzer):
+    """Find out what makes two parties vote together
+    """
+
+    fields = ["category", "party"]
+
+    def __init__(self, party=None, party_2=None,
+                 threshold=None, offline=False,
+                 end_date=None, start_date=None):
+        Analyzer.__init__(self, party, threshold=threshold, offline=offline, end_date=end_date, start_date=start_date)
+
+        self.party_1 = party
+        self.party_2 = party_2
+
+    def analyze_vote(self, vote, vote_id):
+        category = None
+
+        party_votes = {}
+        for k, v in vote[1].iteritems():
+            party = k[1]
+            # Ignore MPs with no party affiliation
+            if party == '-':
+                continue
+            # Ugly hardcoded fix for now
+            if party == "L":
+                party = "FP"
+            if v is not None:
+                party_votes[party] = v
+        if party_votes[self.party_1].margin() > self.threshold\
+           and party_votes[self.party_2].margin() > self.threshold:
+
+            if party_votes[self.party_1].max_key() == party_votes[self.party_2].max_key():
+                # The parties align
+                category = "friend"
+            else:
+                # The parties don't align
+                category = "foe"
+        else:
+            pass
+
+        return {"category": category}
+
+
 class Supporters(Analyzer):
     """Find out who supported the government
     """
 
     fields = ["category", "party"]
 
-    def analyze_vote(self, vote):
+    def analyze_vote(self, vote, vote_id):
         date = self.metadict[vote[0]][0]
 
         self.gov = self.blocks.what_gov(date)
@@ -232,7 +278,7 @@ class Kingmaking(Analyzer):
             stdout.write(" ")
         stdout.flush()
 
-    def analyze_vote(self, vote):
+    def analyze_vote(self, vote, vote_id):
         date = self.metadict[vote[0]][0]
         # Find out what government is in charge
         self.gov = self.blocks.what_gov(date)["parties"]
@@ -280,13 +326,12 @@ class Loyalty(Analyzer):
             stdout.write(["░",
                           "\033[92m▒\033[0m",
                           "\033[93m▓\033[0m",
-                          "\033[91m█\033[0m"
-                          ][analysis["category"]])
+                          "\033[91m█\033[0m"][analysis["category"]])
         else:
             stdout.write(" ")
         stdout.flush()
 
-    def analyze_vote(self, vote):
+    def analyze_vote(self, vote, vote_id):
         # Get sum of votes by block
         # and for out party
         block_votes = {b: Votes(0, 0, 0) for b in self.blocks.blocks}
@@ -331,3 +376,53 @@ class Loyalty(Analyzer):
             # There was no clear block line
             pass
         return {"category": category}
+
+
+class Rebels(Analyzer):
+    """Find out who opposed their party line
+    """
+
+    SUPPORT = 1
+    OPPOSE = 0
+    AYE = 0
+    NO = 1
+
+    fields = ["category"]
+
+    def short_repr(self, analysis):
+        if analysis["category"] is not None:
+            stdout.write(["░", "█"][analysis["category"]])
+        else:
+            stdout.write(" ")
+        stdout.flush()
+
+    def analyze_vote(self, vote, vote_id):
+        party_votes = Votes(0, 0, 0)
+        for k, v in vote[1].iteritems():
+            party = k[1]
+            # Ugly hardcoded fix for now
+            if party == "L":
+                party = "FP"
+            if party == self.party and v is not None:
+                party_votes = v
+
+        if party_votes.margin() <= self.threshold:
+            # No party line, so no rebels
+            return {"category": None}
+
+        party_line = party_votes.max_index()
+        df = self.data
+        party_votes = df[(df.parti == self.party) & (df.punkt == vote_id)]
+        # If party line was Aye/No, rebellion is the opposite (No/Aye)
+        # If party line was Refrain, rebellion is either Aye or No
+        if party_line in [self.AYE, self.NO]:
+            rebels = party_votes[party_votes.rost == ["Nej", "Ja"][party_line]]
+        else:
+            rebels = party_votes[party_votes.rost.isin(["Nej", "Ja"])]
+        if len(rebels.index):
+            print "party", self.party
+            print "party_line:", ["Ja", "Nej", "Avstår"][party_line]
+            print "rebels:", rebels
+
+
+        return {"category": None}

@@ -25,7 +25,7 @@ http://data.riksdagen.se/Data/Voteringar/""",
         'short': "-q", "long": "--query",
         'dest': "query",
         'type': str,
-        'choices': ["loyalty", "kingmaking", "supporters", "friends"],
+        'choices': ["loyalty", "kingmaking", "supporters", "friends", "commonground", "rebels"],
         'help': "What should we check for?",
         'required': True
     }, {
@@ -40,6 +40,11 @@ Leave empty to print to stdout.""",
         'type': str,
         'help': "Party to analyze",
     }, {
+        'short': "-r", "long": "--party2",
+        'dest': "party2",
+        'type': str,
+        'help': "Comparison party, when relevant",
+    }, {
         'short': "-t", "long": "--threshold",
         'dest': "threshold",
         'type': float,
@@ -52,7 +57,7 @@ that something was a block line""",
         'dest': "offline",
         'type': bool,
         'help': """Don't query the Riksdagen API, use only local data.""",
-        'default': False
+        'default': True
     }, {
         'short': "-s", "long": "--start",
         'dest': "start",
@@ -82,14 +87,22 @@ that something was a block line""",
         analyzerClass = analyzers.Supporters
     elif ui.args.query == "friends":
         analyzerClass = analyzers.Friends
+    elif ui.args.query == "rebels":
+        analyzerClass = analyzers.Rebels
+        ui.args.offline = True
+    elif ui.args.query == "commonground":
+        analyzerClass = analyzers.CommonGround
+        if ui.args.party2 is None:
+            raise ArgumentError("Party2 is required for this query")
     else:
         raise NotImplementedError("No analyzer for this query")
 
     analyzer = analyzerClass(ui.args.party,
-                             ui.args.threshold,
-                             ui.args.offline,
+                             threshold=ui.args.threshold,
+                             offline=ui.args.offline,
                              start_date=ui.args.start,
-                             end_date=ui.args.end)
+                             end_date=ui.args.end,
+                             party_2=ui.args.party2)
 
     ui.info("Loading votingdata")
     data = pandas.read_csv(ui.args.csvfile,
@@ -97,7 +110,7 @@ that something was a block line""",
                            names=analyzers.Analyzer.header_names)
     ui.info("Preparing votingdata")
     analyzer.load(data)
-    ui.info("Found %s unique main votes" % analyzer.num_votes)
+    ui.info("Found %s unique main votes" % analyzer.num_votes)  
 
     ui.info("Analyzing data")
     output_data = analyzer.run(screen_dump=(ui.args.outputfile is None))
