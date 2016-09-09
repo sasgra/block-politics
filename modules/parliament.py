@@ -26,6 +26,8 @@ utskott = {
     "LU": "Lagutskottet",  # Former
 }
 
+PARTIES = ["V", "S", "MP", "C", "FP", "M", "KD", "SD"]
+
 
 class Blocks(object):
     """Contains parliament coalition data
@@ -33,7 +35,6 @@ class Blocks(object):
     FIRST = "0"  # Has no predecessor
     LAST = "9"  # Has no successor
 
-    parties = ["V", "S", "MP", "C", "FP", "M", "KD", "SD"]
     blocks = {
         "alliansen": ["C", "FP", "L", "M", "KD"],
         "rodgrona": ["V", "S", "MP"],
