@@ -116,7 +116,10 @@ class Votes(namedtuple('Votes', 'Aye No Refrain')):
 
         if self.max_key() in ["Aye", "No"]:
             total = self.Aye + self.No
-            margin = float(self[self.max_index()]) / float(total)
+            try:
+                margin = float(self[self.max_index()]) / float(total)
+            except ZeroDivisionError:
+                margin = 0
         else:
             total = self.Aye + self.No + self.Refrain
             margin = float(self.Refrain) / float(total)
@@ -124,7 +127,8 @@ class Votes(namedtuple('Votes', 'Aye No Refrain')):
 
 
 def votes_from_rawdata(votes):
+    """ Factory for Vote objects """
     dict_ = defaultdict(int, votes.value_counts())
-    """ Exclude absent MP's (`Fr\xc3\xa5nvarande`) """
+    # Exclude absent MP's (`Fr\xc3\xa5nvarande`)
     votes = Votes(dict_["Ja"], dict_["Nej"], dict_["Avst\xc3\xa5r"])
     return votes
