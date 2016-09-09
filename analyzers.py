@@ -1,7 +1,7 @@
 # coding: utf-8
 """ A collection of analyzer classes for votes
 """
-from modules.parliament import Blocks, Votes, votes_from_rawdata
+from modules.parliament import Blocks, Votes, votes_from_rawdata, PARTIES
 from sys import stdout
 from re import sub
 import pandas
@@ -106,8 +106,9 @@ class Analyzer(object):
                         'document': doc,
                         'utskott': utskott
                         }
-            for k, v in analysis.iteritems():
-                row_data[k] = v
+            if analysis is not None:
+                for k, v in analysis.iteritems():
+                    row_data[k] = v
 
             output_data.append(row_data)
 
@@ -129,9 +130,8 @@ class Friends(Analyzer):
         Analyzer.__init__(self, None, threshold, offline, end_date=end_date, start_date=start_date)
 
         # create pairs of parties
-        parties = self.blocks.parties
         self.party_pairs = list(set([frozenset([a, b])
-                                for a in parties for b in parties if a != b]))
+                                for a in PARTIES for b in PARTIES if a != b]))
 
     def run(self, screen_dump=False):
         """Do some postprocessing"""
@@ -248,7 +248,7 @@ class Supporters(Analyzer):
             """There was a governement line (anything else
                would be extremely remarkable)
             """
-            for party in self.blocks.parties:
+            for party in PARTIES:
                 if party in self.gov["parties"]:
                     # Ignore govt members
                     pass
@@ -387,13 +387,14 @@ class Rebels(Analyzer):
     AYE = 0
     NO = 1
 
-    fields = ["category"]
+    fields = None
 
     def short_repr(self, analysis):
-        if analysis["category"] is not None:
-            stdout.write(["░", "█"][analysis["category"]])
-        else:
-            stdout.write(" ")
+        if analysis is not None and analysis["rebels"] is not None:
+            string = ','.join([analysis["rebels"]["namn"].values()[0],
+                               analysis["rebels"]["parti"].values()[0],
+                               analysis["rebels"]["valkrets"].values()[0]])
+            stdout.write(string + "\n")
         stdout.flush()
 
     def analyze_vote(self, vote, vote_id):
@@ -408,7 +409,7 @@ class Rebels(Analyzer):
 
         if party_votes.margin() <= self.threshold:
             # No party line, so no rebels
-            return {"category": None}
+            return None
 
         party_line = party_votes.max_index()
         df = self.data
@@ -419,10 +420,8 @@ class Rebels(Analyzer):
             rebels = party_votes[party_votes.rost == ["Nej", "Ja"][party_line]]
         else:
             rebels = party_votes[party_votes.rost.isin(["Nej", "Ja"])]
+
         if len(rebels.index):
-            print "party", self.party
-            print "party_line:", ["Ja", "Nej", "Avstår"][party_line]
-            print "rebels:", rebels
-
-
-        return {"category": None}
+            return {"rebels": rebels.to_dict()}
+        else:
+            return None
