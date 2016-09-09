@@ -15,17 +15,23 @@ def main():
     # pylint: disable=C0103
 
     cmd_args = [{
-        'short': "-f", "long": "--csvfile",
+        'short': "-f", "long": "--csvfile(s)",
         'dest': "csvfile",
         'type': str,
-        'help': """CSV file from
-http://data.riksdagen.se/Data/Voteringar/""",
+        'help': """CSV file(s) from
+http://data.riksdagen.se/Data/Voteringar/,
+separate multiple files with pipe (|)""",
         'required': True
     }, {
         'short': "-q", "long": "--query",
         'dest': "query",
         'type': str,
-        'choices': ["loyalty", "kingmaking", "supporters", "friends", "commonground", "rebels"],
+        'choices': ["loyalty",
+                    "kingmaking",
+                    "supporters",
+                    "friends",
+                    "commonground",
+                    "rebels"],
         'help': "What should we check for?",
         'required': True
     }, {
@@ -105,9 +111,13 @@ that something was a block line""",
                              party_2=ui.args.party2)
 
     ui.info("Loading votingdata")
-    data = pandas.read_csv(ui.args.csvfile,
-                           header=None,
-                           names=analyzers.Analyzer.header_names)
+    data = pandas.DataFrame()
+    for file_ in ui.args.csvfile.split("|"):
+        frame = pandas.read_csv(file_,
+                                header=None,
+                                names=analyzers.Analyzer.header_names)
+        data = data.append(frame, ignore_index=True)
+
     ui.info("Preparing votingdata")
     analyzer.load(data)
     ui.info("Found %s unique main votes" % analyzer.num_votes)  
