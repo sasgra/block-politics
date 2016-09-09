@@ -3,8 +3,9 @@
 """
 
 from modules.interface import Interface
+from modules.parliament import PARTIES
 from argparse import ArgumentError
-from csvkit import DictWriter
+# from csvkit import DictWriter
 import pandas
 import analyzers
 
@@ -44,7 +45,9 @@ Leave empty to print to stdout.""",
         'short': "-p", "long": "--party",
         'dest': "party",
         'type': str,
-        'help': "Party to analyze",
+        'default': "*",
+        'help': """Party or parties to analyze.
+Separate multiple parties with pipe (|)""",
     }, {
         'short': "-r", "long": "--party2",
         'dest': "party2",
@@ -103,13 +106,6 @@ that something was a block line""",
     else:
         raise NotImplementedError("No analyzer for this query")
 
-    analyzer = analyzerClass(ui.args.party,
-                             threshold=ui.args.threshold,
-                             offline=ui.args.offline,
-                             start_date=ui.args.start,
-                             end_date=ui.args.end,
-                             party_2=ui.args.party2)
-
     ui.info("Loading votingdata")
     data = pandas.DataFrame()
     for file_ in ui.args.csvfile.split("|"):
@@ -119,12 +115,23 @@ that something was a block line""",
         data = data.append(frame, ignore_index=True)
 
     ui.info("Preparing votingdata")
-    analyzer.load(data)
-    ui.info("Found %s unique main votes" % analyzer.num_votes)  
+    if ui.args.party == "*":
+        ui.args.party = "|".join(PARTIES)
+    for party in ui.args.party.split("|"):
+        analyzer = analyzerClass(party,
+                                 threshold=ui.args.threshold,
+                                 offline=ui.args.offline,
+                                 start_date=ui.args.start,
+                                 end_date=ui.args.end,
+                                 party_2=ui.args.party2)
 
-    ui.info("Analyzing data")
-    output_data = analyzer.run(screen_dump=(ui.args.outputfile is None))
+        analyzer.load(data)
+        ui.info("Found %s unique main votes" % analyzer.num_votes)
 
+        ui.info("Analyzing data")
+        analyzer.run(screen_dump=(ui.args.outputfile is None))
+
+"""
     if ui.args.outputfile is not None:
         ui.info("Writing results to %s" % ui.args.outputfile)
         fieldnames = output_data[0].keys()  # Don't complicate things
@@ -134,6 +141,7 @@ that something was a block line""",
             writer.writeheader()
             for row in output_data:
                     writer.writerow(row)
+"""
 
 if __name__ == '__main__':
     main()
