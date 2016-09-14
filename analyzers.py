@@ -56,7 +56,6 @@ class Analyzer(object):
         data = data[(data.avser == "sakfrågan") &
                     (data.datum <= self.end_date) &
                     (data.datum >= self.start_date)]
-        data['parti'].str.upper()  # uppercase party names
 
         self.data = data
         self.votes = pandas.pivot_table(data, values=["rost"],
