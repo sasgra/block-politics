@@ -113,8 +113,10 @@ that something was a block line""",
                                 header=None,
                                 names=analyzers.Analyzer.header_names)
         data = data.append(frame, ignore_index=True)
-    ui.info("Converting to upper case")
+        
+    ui.info("Converting parties to upper case")
     data.loc[:,'parti'] = map(lambda x: x.upper(), data['parti']) #converts parti to upper
+    
     ui.info("Preparing votingdata")
     if ui.args.party == "*":
         ui.args.party = "|".join(PARTIES)
